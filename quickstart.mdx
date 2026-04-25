@@ -24,7 +24,7 @@ Content-Type: application/json
 ## 2. 提交生成任务
 
 ```bash
-curl "https://lmage2.dimilinks.com/v1/images/generations?async=true" \
+curl "https://dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -50,7 +50,7 @@ curl "https://lmage2.dimilinks.com/v1/images/generations?async=true" \
 ## 3. 轮询任务状态
 
 ```bash
-curl "https://lmage2.dimilinks.com/v1/tasks/img_xxx" \
+curl "https://dimilinks.com/v1/tasks/img_xxx" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 ```
 
@@ -80,7 +80,7 @@ curl "https://lmage2.dimilinks.com/v1/tasks/img_xxx" \
 返回值可能是相对路径。展示或下载前请补齐 origin：
 
 ```ts
-const DIMILINKS_ORIGIN = 'https://lmage2.dimilinks.com'
+const DIMILINKS_ORIGIN = 'https://dimilinks.com'
 
 export function normalizeImageUrl(url: string) {
   return new URL(url, DIMILINKS_ORIGIN).toString()
