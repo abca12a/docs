@@ -1,33 +1,39 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API reference"
+description: "DimiLinks 图片 API 的基础信息和路由概览。"
+icon: "terminal"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
-
-## Authentication
-
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
-
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+```text
+https://lmage2.dimilinks.com/v1
 ```
+
+<Warning>
+  请注意 `lmage2` 的首字符是小写字母 `l`。
+</Warning>
+
+## 路由概览
+
+| 方法 | 路径 | 说明 | 推荐程度 |
+| --- | --- | --- | --- |
+| `GET` | `/v1/models` | 查询可用模型 | 推荐 |
+| `POST` | `/v1/images/generations` | 文生图；也支持 JSON 参考图扩展 | 推荐 |
+| `POST` | `/v1/images/edits` | multipart 图生图和编辑 | 可用 |
+| `GET` | `/v1/tasks/{task_id}` | 查询图片任务 | 推荐 |
+| `GET` | `/v1/images/tasks/{task_id}` | 历史任务查询结构 | 兼容旧客户端 |
+| `GET` | `/p/img/{task_id}/{idx}` | 图片代理访问 | 展示图片时使用 |
+
+## 响应风格
+
+默认响应接近 OpenAI Images 使用习惯。需要 APIMart 风格响应时，可以开启 [APIMart compatibility](/api-reference/compatibility/apimart)。
+
+## 推荐链路
+
+```text
+POST /v1/images/generations?async=true
+GET  /v1/tasks/{task_id}
+```
+
+图片生成耗时通常不固定。异步链路能避免调用方因为长连接、网关超时或页面关闭而丢失结果。

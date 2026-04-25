@@ -1,0 +1,70 @@
+---
+title: "Create image edit"
+description: "使用 multipart/form-data 上传参考图并生成编辑结果。"
+openapi: "POST /images/edits"
+icon: "wand-magic-sparkles"
+---
+
+`/v1/images/edits` 用于上传图片文件并生成编辑结果。当前更推荐用 [Create image generation](/api-reference/images/gpt-image-2/generation) 搭配 `image_urls` 走异步链路。
+
+## 请求地址
+
+```http
+POST https://lmage2.dimilinks.com/v1/images/edits
+Content-Type: multipart/form-data
+```
+
+至少上传一张 `image` 文件。
+
+## 单图示例
+
+```bash
+curl "https://lmage2.dimilinks.com/v1/images/edits" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -F "model=gpt-image-2" \
+  -F "prompt=把图片改成复古胶片风格，保留主体" \
+  -F "size=16:9" \
+  -F "resolution=2k" \
+  -F "image=@/path/to/reference.png"
+```
+
+## 多图示例
+
+```bash
+curl "https://lmage2.dimilinks.com/v1/images/edits" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -F "model=gpt-image-2" \
+  -F "prompt=融合两张参考图的风格，生成电商主图" \
+  -F "size=1:1" \
+  -F "resolution=4k" \
+  -F "image[]=@/path/to/ref-1.png" \
+  -F "image[]=@/path/to/ref-2.png"
+```
+
+## 文件字段
+
+| 字段 | 说明 |
+| --- | --- |
+| `image` | 单文件，推荐。 |
+| `image[]` | 多文件。 |
+| `images` | 多文件兼容字段。 |
+| `images[]` | 多文件兼容字段。 |
+| `image_1`、`image_2` | 编号字段兼容。 |
+| `mask` | 可选。当前会作为参考图一并处理。 |
+
+## 响应
+
+成功后返回图片结果：
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```

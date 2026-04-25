@@ -1,133 +1,54 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "DimiLinks API 文档"
+description: "使用 gpt-image-2 生成、编辑和查询图片任务。"
+icon: "sparkles"
 ---
 
-## Setting up
+DimiLinks 提供兼容 OpenAI Images 使用习惯的图片 API。你可以用服务端 API Key 提交文生图、图生图和图片编辑请求，并通过任务接口稳定获取结果。
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
+<Note>
+  推荐使用异步链路：提交任务后轮询任务状态。图片生成通常需要几十秒到数分钟，异步方式更适合线上应用。
+</Note>
 
 <Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+  <Card title="快速开始" icon="rocket" href="/quickstart">
+    用一个完整示例完成提交、轮询和取图。
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="文生图" icon="image" href="/api-reference/images/gpt-image-2/generation">
+    查看 `gpt-image-2` 的请求参数和返回结构。
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="任务查询" icon="bars-progress" href="/api-reference/images/gpt-image-2/tasks">
+    轮询 `queued`、`in_progress`、`succeeded` 和 `failed` 状态。
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="尺寸与清晰度" icon="expand" href="/api-reference/images/gpt-image-2/sizes">
+    选择画幅比例、1K、2K 和 4K 输出档位。
   </Card>
 </Columns>
 
-## Create beautiful pages
+## 推荐接入方式
 
-Everything you need to create world-class documentation.
+```text
+POST /v1/images/generations?async=true
+GET  /v1/tasks/{task_id}
+```
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Base URL
 
-## Make your content agent ready
+```text
+https://lmage2.dimilinks.com/v1
+```
 
-Make your docs work for humans and AI agents alike.
+<Warning>
+  域名是 `lmage2.dimilinks.com`，首字符是小写字母 `l`，不是大写 `I`。
+</Warning>
 
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
-  </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
-  </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
+## 常用入口
 
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+| 能力 | 页面 |
+| --- | --- |
+| 鉴权方式 | [Authentication](/api-reference/authentication) |
+| 查询模型 | [List models](/api-reference/models) |
+| 生成图片 | [Create image generation](/api-reference/images/gpt-image-2/generation) |
+| 编辑图片 | [Create image edit](/api-reference/images/gpt-image-2/edits) |
+| 查询任务 | [Retrieve image task](/api-reference/images/gpt-image-2/tasks) |
+| APIMart 兼容 | [APIMart compatibility](/api-reference/compatibility/apimart) |

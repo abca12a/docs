@@ -1,16 +1,13 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
+    "title": "DimiLinks Images API",
+    "description": "DimiLinks gpt-image-2 image generation, editing, and task APIs.",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://lmage2.dimilinks.com/v1"
     }
   ],
   "security": [
@@ -18,199 +15,610 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "name": "Models"
+    },
+    {
+      "name": "Images"
+    },
+    {
+      "name": "Tasks"
+    }
+  ],
   "paths": {
-    "/plants": {
+    "/models": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
+        "tags": ["Models"],
+        "summary": "List models",
+        "operationId": "listModels",
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Available models",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                  "$ref": "#/components/schemas/ModelList"
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/images/generations": {
+      "post": {
+        "tags": ["Images"],
+        "summary": "Create image generation",
+        "operationId": "createImageGeneration",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
+            "name": "async",
+            "in": "query",
+            "description": "Set to true to submit an async image task.",
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "wait_for_result",
+            "in": "query",
+            "description": "Set to false to submit an async image task.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "compat",
+            "in": "query",
+            "description": "Set to apimart for APIMart-compatible response shape.",
+            "schema": {
+              "type": "string",
+              "enum": ["apimart"]
             }
           }
         ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/ImageGenerationRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Image generation result or async submission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ImageSubmitResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ImageResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApimartSubmitResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/images/edits": {
+      "post": {
+        "tags": ["Images"],
+        "summary": "Create image edit",
+        "operationId": "createImageEdit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageEditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image edit result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/tasks/{task_id}": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Retrieve image task",
+        "operationId": "retrieveImageTask",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageTask"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/images/tasks/{task_id}": {
+      "get": {
+        "tags": ["Tasks"],
+        "summary": "Retrieve legacy image task",
+        "operationId": "retrieveLegacyImageTask",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Legacy image task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegacyImageTask"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }
     }
   },
   "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Model is not allowed for this API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Task not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ModelList": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "example": "list"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Model"
+            }
+          }
+        },
+        "required": ["object", "data"]
+      },
+      "Model": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "gpt-image-2"
+          },
+          "object": {
+            "type": "string",
+            "example": "model"
+          },
+          "created": {
+            "type": "integer",
+            "example": 1777080000
+          },
+          "owned_by": {
+            "type": "string",
+            "example": "chatgpt"
+          }
+        }
+      },
+      "ImageGenerationRequest": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "default": "gpt-image-2"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "minimum": 1,
+            "maximum": 4
+          },
+          "size": {
+            "type": "string",
+            "examples": ["1:1", "16:9", "3840x2160"]
+          },
+          "resolution": {
+            "type": "string",
+            "enum": ["1k", "2k", "4k"]
+          },
+          "output_format": {
+            "type": "string",
+            "examples": ["png", "jpeg", "webp"]
+          },
+          "output_compression": {
+            "type": "integer"
+          },
+          "background": {
+            "type": "string",
+            "examples": ["auto", "transparent", "opaque"]
+          },
+          "moderation": {
+            "type": "string",
+            "examples": ["auto", "low"]
+          },
+          "wait_for_result": {
+            "type": "boolean"
+          },
+          "image_urls": {
+            "$ref": "#/components/schemas/ReferenceImages"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "required": ["prompt"]
+      },
+      "ImageEditRequest": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "default": "gpt-image-2"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "size": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary"
+          },
+          "image[]": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "mask": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["prompt"]
+      },
+      "ReferenceImages": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              ]
+            },
+            "maxItems": 4
+          },
+          {
+            "type": "object",
+            "additionalProperties": true
+          }
+        ]
+      },
+      "ImageSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "integer",
+            "example": 1777080000
+          },
+          "task_id": {
+            "type": "string",
+            "example": "img_xxx"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageData"
+            },
+            "example": []
+          }
+        },
+        "required": ["task_id", "data"]
+      },
+      "ApimartSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "submitted"
+                },
+                "task_id": {
+                  "type": "string",
+                  "example": "img_xxx"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ImageResponse": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "integer",
+            "example": 1777080000
+          },
+          "task_id": {
+            "type": "string",
+            "example": "img_xxx"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageData"
+            }
+          }
+        }
+      },
+      "ImageData": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "/p/img/img_xxx/0?exp=1777166400000&sig=..."
+          },
+          "file_id": {
+            "type": "string",
+            "example": "file_xxx"
+          }
+        }
+      },
+      "ImageTask": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "img_xxx"
+          },
+          "task_id": {
+            "type": "string",
+            "example": "img_xxx"
+          },
+          "object": {
+            "type": "string",
+            "example": "image.task"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["queued", "in_progress", "succeeded", "failed"]
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "created_at": {
+            "type": "integer"
+          },
+          "completed_at": {
+            "type": "integer"
+          },
+          "result": {
+            "$ref": "#/components/schemas/ImageResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorObject"
+          }
+        }
+      },
+      "LegacyImageTask": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "conversation_id": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer"
+          },
+          "finished_at": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "credit_cost": {
+            "type": "integer"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageData"
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorObject"
+          }
+        }
+      },
+      "ErrorObject": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "example": "invalid_request_error"
+          },
+          "code": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
+        }
       }
     }
   }

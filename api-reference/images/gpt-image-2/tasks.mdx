@@ -1,0 +1,102 @@
+---
+title: "Retrieve image task"
+description: "查询图片生成任务的状态和结果。"
+openapi: "GET /tasks/{task_id}"
+icon: "bars-progress"
+---
+
+提交异步图片任务后，用 `task_id` 查询任务状态。新接入请优先使用 `/v1/tasks/{task_id}`。
+
+## 请求
+
+```bash
+curl "https://lmage2.dimilinks.com/v1/tasks/img_xxx" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## 进行中响应
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "in_progress",
+  "progress": 50,
+  "created_at": 1777080000
+}
+```
+
+## 成功响应
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "succeeded",
+  "progress": 100,
+  "created_at": 1777080000,
+  "completed_at": 1777080060,
+  "result": {
+    "created": 1777080000,
+    "data": [
+      {
+        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+        "file_id": "file_xxx"
+      }
+    ]
+  }
+}
+```
+
+## 失败响应
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "failed",
+  "progress": 100,
+  "created_at": 1777080000,
+  "completed_at": 1777080060,
+  "error": {
+    "code": "upstream_error",
+    "message": "上游返回错误"
+  }
+}
+```
+
+## 状态
+
+| 状态 | 含义 | 调用方建议 |
+| --- | --- | --- |
+| `queued` | 等待处理 | 继续轮询。 |
+| `in_progress` | 生成中 | 继续轮询。 |
+| `succeeded` | 已完成 | 展示 `result.data[].url`。 |
+| `failed` | 已失败 | 展示错误信息，并允许用户重试。 |
+
+## 历史路径
+
+`GET /v1/images/tasks/{task_id}` 保留给旧客户端。新接入不要混用两个查询结构。
+
+历史路径响应示例：
+
+```json
+{
+  "task_id": "img_xxx",
+  "status": "success",
+  "conversation_id": "conv_xxx",
+  "created": 1777080000,
+  "finished_at": 1777080060,
+  "error": "",
+  "credit_cost": 123,
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```

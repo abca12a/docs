@@ -1,33 +1,23 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
-
 # Documentation project instructions
 
 ## About this project
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
-- Pages are MDX files with YAML frontmatter
-- Configuration lives in `docs.json`
-- Run `mint dev` to preview locally
-- Run `mint broken-links` to check links
-
-## Terminology
-
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- This is the DimiLinks API documentation site built on Mintlify.
+- Pages are MDX files with YAML frontmatter.
+- Configuration lives in `docs.json`.
+- Run `mint dev` to preview locally when Mintlify CLI is available.
+- Run `mint broken-links` before publishing when Mintlify CLI is available.
 
 ## Style preferences
 
-{/* Add any project-specific style rules below */}
-
-- Use active voice and second person ("you")
-- Keep sentences concise — one idea per sentence
-- Use sentence case for headings
-- Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+- Use Simplified Chinese for primary content.
+- Use active voice and concise sentences.
+- Use second person when guiding developers.
+- Use code formatting for API paths, parameters, commands, file names, and environment variables.
+- Keep endpoint pages focused on one developer task: request, response, parameters, and next step.
 
 ## Content boundaries
 
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+- Document public API behavior only.
+- Do not include internal server credentials, admin-only operations, or private infrastructure details.
+- Do not tell users to put API Keys in browsers or public client bundles.

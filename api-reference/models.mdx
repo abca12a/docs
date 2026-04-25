@@ -1,0 +1,37 @@
+---
+title: "List models"
+description: "查询当前 API Key 可用的模型。"
+openapi: "GET /models"
+icon: "boxes-stacked"
+---
+
+查询当前密钥可以调用的模型列表。图片能力默认使用 `gpt-image-2`。
+
+## 请求
+
+```bash
+curl "https://lmage2.dimilinks.com/v1/models" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## 响应
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gpt-image-2",
+      "object": "model",
+      "created": 1777080000,
+      "owned_by": "chatgpt"
+    }
+  ]
+}
+```
+
+## 使用建议
+
+- 新接入可以默认选择 `gpt-image-2`。
+- 如果你的产品支持多模型，请先读取该接口再展示模型选项。
+- 如果返回 `403 model_not_allowed`，请检查 API Key 的模型权限。

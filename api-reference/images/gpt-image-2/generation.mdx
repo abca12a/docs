@@ -1,0 +1,129 @@
+---
+title: "Create image generation"
+description: "使用 gpt-image-2 生成图片，支持异步任务和 JSON 参考图。"
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+使用 `gpt-image-2` 从文本生成图片。也可以通过 `image_urls` 携带参考图，实现图生图或风格迁移。
+
+<Note>
+  推荐加上 `?async=true`。同步模式会等待图片完成后才返回，容易受到调用方超时影响。
+</Note>
+
+## 请求地址
+
+```http
+POST https://lmage2.dimilinks.com/v1/images/generations?async=true
+```
+
+## 文生图示例
+
+```bash
+curl "https://lmage2.dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "一张赛博朋克风格的猫咪海报，霓虹灯，电影感",
+    "n": 1,
+    "size": "16:9",
+    "resolution": "2k",
+    "output_format": "png"
+  }'
+```
+
+## 图生图示例
+
+```bash
+curl "https://lmage2.dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "保持人物主体一致，改成海边日落电影写真风格",
+    "n": 1,
+    "size": "16:9",
+    "resolution": "4k",
+    "image_urls": [
+      "https://example.com/reference.png"
+    ]
+  }'
+```
+
+## 异步响应
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": []
+}
+```
+
+拿到 `task_id` 后，请调用 [Retrieve image task](/api-reference/images/gpt-image-2/tasks) 查询结果。
+
+## 同步响应
+
+同步模式会在图片完成后返回：
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```
+
+## 参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | `gpt-image-2` | 模型名称。 |
+| `prompt` | string | 必填 | 生图或编辑提示词。 |
+| `n` | integer | `1` | 当前建议按 `1` 设计。接口会把过小或过大的值归一到支持范围。 |
+| `size` | string | `1024x1024` | 支持比例如 `1:1`、`16:9`，也支持像素如 `3840x2160`。 |
+| `resolution` | string | 空 | 推荐清晰度字段：`1k`、`2k`、`4k`。 |
+| `output_format` | string | 空 | 输出格式建议使用 `png`、`jpeg` 或 `webp`。 |
+| `output_compression` | integer | 空 | 输出压缩质量，通常配合 `jpeg` 或 `webp`。 |
+| `background` | string | 空 | 背景偏好，如 `auto`、`transparent`、`opaque`。 |
+| `moderation` | string | 空 | 内容审核强度，如 `auto`、`low`。 |
+| `user` | string | 空 | 调用方用户标识，便于审计。 |
+| `wait_for_result` | boolean | `true` | 传 `false` 可进入异步提交。 |
+| `image_urls` | string / array / object | 空 | JSON 参考图字段，最多 4 张。 |
+
+## 开启异步的方式
+
+任一方式命中即可进入异步模式：
+
+- 查询参数：`?async=true`
+- 查询参数：`?wait_for_result=false`
+- 请求头：`Prefer: respond-async`
+- 请求体：`"wait_for_result": false`
+
+## 参考图格式
+
+推荐使用 `image_urls`：
+
+```json
+{
+  "image_urls": [
+    "https://example.com/ref.png",
+    "data:image/png;base64,iVBORw0KGgo..."
+  ]
+}
+```
+
+也兼容 `reference_images`、`images`、`image`、`image_url`、`input_image` 和 `input_images`。
+
+## 参考图限制
+
+- 同一次请求最多 4 张参考图。
+- 单张参考图最大 20 MB。
+- 支持 HTTP(S) URL、data URL 和纯 base64。
+- 浏览器 `blob:` URL 不能直接传入，请先上传到你的服务端或转成 data URL。

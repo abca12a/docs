@@ -1,0 +1,38 @@
+---
+title: "Errors"
+description: "DimiLinks API 的错误响应格式和常见 HTTP 状态。"
+icon: "circle-exclamation"
+---
+
+默认错误响应使用 OpenAI 风格的 `error` 包装。
+
+```json
+{
+  "error": {
+    "message": "prompt 不能为空",
+    "type": "invalid_request_error",
+    "code": "invalid_request_error"
+  }
+}
+```
+
+## 常见错误
+
+| HTTP | code | 含义 | 调用方建议 |
+| ---: | --- | --- | --- |
+| `400` | `invalid_request_error` / `invalid_reference_image` | 参数错误、prompt 为空、参考图异常。 | 提示用户修改参数。 |
+| `401` | `missing_api_key` / `invalid_api_key` | API Key 缺失或错误。 | 检查密钥配置。 |
+| `402` | `insufficient_balance` | 余额不足。 | 提示充值或联系管理员。 |
+| `403` | `model_not_allowed` | API Key 没有模型权限。 | 检查模型白名单。 |
+| `404` | `not_found` | 任务不存在或不属于当前用户。 | 停止轮询。 |
+| `429` | `rate_limit_rpm` | RPM 限流。 | 降低并发，稍后重试。 |
+| `500` | `internal_error` / `billing_error` | 服务内部异常。 | 记录日志并稍后重试。 |
+| `502` / `503` | `upstream_error` / `service_unavailable` | 图片渠道暂时不可用。 | 可重试或提示用户稍后再试。 |
+
+## 处理建议
+
+- 对 `400` 展示明确的参数提示。
+- 对 `401` 和 `403` 提示检查密钥或权限。
+- 对 `429` 做退避重试，不要立即高频重试。
+- 对 `502` 和 `503` 可允许用户重试。
+- 对 `404` 任务查询停止轮询，避免浪费请求。
