@@ -50,6 +50,12 @@ curl "https://dimilinks.com/v1/tasks/img_xxx" \
 }
 ```
 
+## 图片地址格式
+
+任务成功后读取 `result.data[].url`。该字段可能是相对路径、完整 HTTP(S) 链接，或 `data:image/...;base64,...` Data URL。
+
+Data URL 不是错误，也不是日志内容；它就是图片本体。网页可直接展示，脚本保存为文件时需要先解码 base64。
+
 ## 失败响应
 
 ```json

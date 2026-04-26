@@ -80,6 +80,14 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 }
 ```
 
+## 结果字段说明
+
+`data[].url` 不一定永远是公网图片链接。你需要同时兼容以下三种形式：
+
+- `/p/img/...`：相对路径，展示或下载前补成 `https://dimilinks.com/p/img/...`。
+- `https://...`：完整图片链接，可以直接请求或展示。
+- `data:image/...;base64,...`：Data URL，字符串本身就是图片内容。网页可直接作为 `<img src>` 使用；服务端脚本保存文件时，需要解码逗号后的 base64。
+
 ## 参数
 
 | 参数 | 类型 | 默认值 | 说明 |

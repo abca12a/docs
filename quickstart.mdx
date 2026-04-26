@@ -77,14 +77,29 @@ curl "https://dimilinks.com/v1/tasks/img_xxx" \
 
 ## 4. 处理图片 URL
 
-返回值可能是相对路径。展示或下载前请补齐 origin：
+返回值可能是相对路径、完整图片链接，也可能是 `data:image/...;base64,...` Data URL。
+
+网页展示时可以这样处理：
 
 ```ts
 const DIMILINKS_ORIGIN = 'https://dimilinks.com'
 
 export function normalizeImageUrl(url: string) {
+  if (url.startsWith('data:image/')) return url
   return new URL(url, DIMILINKS_ORIGIN).toString()
 }
+```
+
+如果你在服务端脚本里拿到 Data URL，需要把逗号后的 base64 解码保存为文件：
+
+```python
+import base64
+
+data_url = result["result"]["data"][0]["url"]
+base64_data = data_url.split(",", 1)[1]
+
+with open("image.png", "wb") as f:
+    f.write(base64.b64decode(base64_data))
 ```
 
 ## 轮询建议
