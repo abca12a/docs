@@ -60,6 +60,15 @@
               "api-reference/videos/grok-imagine-video/generation",
               "api-reference/videos/grok-imagine-video/tasks"
             ]
+          },
+          {
+            "group": "IDE 与 CLI 接入",
+            "pages": [
+              "api-reference/integrations/ccswitch",
+              "api-reference/integrations/claude-code",
+              "api-reference/integrations/codex-cli",
+              "api-reference/integrations/vscode-and-ides"
+            ]
           }
         ]
       }

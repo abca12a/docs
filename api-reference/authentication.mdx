@@ -4,7 +4,12 @@ description: "用 Bearer Token 调用 DimiLinks 全部 API。"
 icon: "key"
 ---
 
-所有 `/v1/*` 接口都使用同一把 Bearer 密钥，包括对话、图片和视频。
+DimiLinks 所有接口共用同一把 Bearer 密钥。请求按协议族选择 base URL：
+
+- OpenAI 兼容协议：`https://dimilinks.com/v1`
+- Anthropic 原生协议：`https://api-direct.dimilinks.com/`
+
+请求头：
 
 ```http
 Authorization: Bearer <DIMILINKS_API_KEY>
@@ -14,8 +19,20 @@ Content-Type: application/json
 ## 示例
 
 ```bash
+# OpenAI 兼容入口
 curl "https://dimilinks.com/v1/models" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
+
+# Anthropic 原生入口
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 64,
+    "messages": [{"role": "user", "content": "ping"}]
+  }'
 ```
 
 ## 安全建议
@@ -40,7 +57,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="claude-sonnet-4-6",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": "你好"}],
 )
 ```
@@ -52,7 +69,7 @@ from anthropic import Anthropic
 
 client = Anthropic(
     api_key="sk-...",
-    base_url="https://dimilinks.com",
+    base_url="https://api-direct.dimilinks.com/",
 )
 
 response = client.messages.create(
@@ -61,6 +78,10 @@ response = client.messages.create(
     messages=[{"role": "user", "content": "你好"}],
 )
 ```
+
+<Note>
+  Anthropic SDK 的 `base_url` 指到 `https://api-direct.dimilinks.com/` 即可；SDK 内部会自动拼接 `/v1/messages`。
+</Note>
 
 ## 图片 / 视频结果链接
 

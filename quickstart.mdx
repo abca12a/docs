@@ -19,7 +19,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 Content-Type: application/json
 ```
 
-## 2. 调用 Claude 对话
+## 2. 调用 Claude 对话（OpenAI 兼容入口）
 
 ```bash
 curl "https://dimilinks.com/v1/chat/completions" \
@@ -61,7 +61,27 @@ curl "https://dimilinks.com/v1/chat/completions" \
 
 把 `model` 换成 `gpt-5.5`、`gpt-5.4-mini`、`grok-4.20-fast` 等，就可以调用其他文本模型；密钥不变。
 
-## 3. 切换到流式输出
+## 3. 用 Anthropic 原生协议（推荐 Claude SDK / Claude Code）
+
+如果你在用 Anthropic 官方 SDK 或 Claude Code，请用独立的 base URL `https://api-direct.dimilinks.com/`：
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 256,
+    "messages": [
+      {"role": "user", "content": "你好"}
+    ]
+  }'
+```
+
+详见 [Anthropic Messages](/api-reference/chat/anthropic-messages)。
+
+## 4. 切换到流式输出
 
 ```bash
 curl "https://dimilinks.com/v1/chat/completions" \
@@ -78,9 +98,9 @@ curl "https://dimilinks.com/v1/chat/completions" \
 
 服务端会以 `text/event-stream` 推回一连串 `data: {...}` 增量事件，最后以 `data: [DONE]` 结束。详见 [Chat completions](/api-reference/chat/completions)。
 
-## 4. 下一步
+## 5. 下一步
 
-- 用 Anthropic 原生协议调用 Claude：[Anthropic Messages](/api-reference/chat/anthropic-messages)
+- 在 Claude Code / Codex CLI / Cursor / Continue 等 IDE 中接入：[IDE 与 CLI 接入](/api-reference/integrations/ccswitch)
 - 提交图片任务：[Create image generation](/api-reference/images/gpt-image-2/generation)
 - 提交视频任务：[Create video generation](/api-reference/videos/grok-imagine-video/generation)
 - 查询任务进度：[Retrieve image task](/api-reference/images/gpt-image-2/tasks)

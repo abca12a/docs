@@ -1,0 +1,107 @@
+---
+title: "VS Code 与其他 IDE"
+description: "在 Cursor、Continue、Roo Cline、Zed、JetBrains AI Assistant 等客户端中接入 DimiLinks。"
+icon: "code"
+---
+
+大多数 AI 编程客户端都允许自定义 base URL 与 API key。下面给出主流工具的最小配置方式，复制对应表格里的两个值即可。
+
+## 通用规则
+
+| 协议族 | base URL | 适合 |
+| --- | --- | --- |
+| OpenAI 兼容 | `https://dimilinks.com/v1` | GPT / Grok / 也可调 Claude（OpenAI 协议） |
+| Anthropic 原生 | `https://api-direct.dimilinks.com/` | Claude SDK / Claude Code 风格 |
+
+API key 用 DimiLinks 控制台创建的 Bearer 密钥。
+
+## VS Code · Continue
+
+[Continue](https://continue.dev/) 支持把 `~/.continue/config.json` 里 `models` 字段直接对接 OpenAI 兼容入口。
+
+```json
+{
+  "models": [
+    {
+      "title": "DimiLinks GPT-5.5",
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "apiBase": "https://dimilinks.com/v1",
+      "apiKey": "sk-..."
+    },
+    {
+      "title": "DimiLinks Claude Sonnet 4.6",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "apiBase": "https://api-direct.dimilinks.com/",
+      "apiKey": "sk-..."
+    }
+  ]
+}
+```
+
+`provider: "anthropic"` 会让 Continue 走 Anthropic 原生协议，请配合 `api-direct` 域名。
+
+## VS Code · Roo Cline / Cline
+
+新增一个自定义 provider：
+
+| 字段 | 值 |
+| --- | --- |
+| Provider | `OpenAI Compatible` |
+| Base URL | `https://dimilinks.com/v1` |
+| API Key | DimiLinks Bearer |
+| Model ID | 例如 `claude-sonnet-4-6`、`gpt-5.5` |
+
+如果你想用 Anthropic 原生协议，把 Provider 选成 `Anthropic`、Base URL 改成 `https://api-direct.dimilinks.com/`、其它不变。
+
+## Cursor
+
+Cursor → Settings → Models → "OpenAI API Key"：
+
+- API Base URL：`https://dimilinks.com/v1`
+- API Key：DimiLinks Bearer
+- 然后 "Override OpenAI Models" 里加上你想用的模型 ID（例如 `gpt-5.5`、`claude-sonnet-4-6`）。
+
+Cursor 当前只支持单一 OpenAI 兼容 base URL；如果你想用 Anthropic 原生协议，建议改用 Continue 或 Cherry Studio。
+
+## Zed
+
+`~/.config/zed/settings.json` 里：
+
+```json
+{
+  "language_models": {
+    "openai": {
+      "api_url": "https://dimilinks.com/v1",
+      "available_models": [
+        { "name": "claude-sonnet-4-6", "max_tokens": 200000 },
+        { "name": "gpt-5.5", "max_tokens": 128000 }
+      ]
+    }
+  }
+}
+```
+
+API key 在 Zed 设置面板里填（或写入 `OPENAI_API_KEY` 环境变量）。
+
+## JetBrains AI Assistant / Junie
+
+JetBrains 系产品当前依赖官方网关，不直接暴露 base URL 配置。推荐通过 [Cherry Studio](/api-reference/integrations/ccswitch) 或 Continue 在 IDE 内嵌入 DimiLinks，绕过 JetBrains 自家的网关。
+
+## Open WebUI / LobeChat / NextChat 等
+
+这一类自托管前端通常都有「OpenAI 兼容」provider。填法：
+
+- API URL：`https://dimilinks.com/v1`
+- API Key：DimiLinks Bearer
+- Model：例如 `claude-sonnet-4-6`、`gpt-5.5`、`grok-4.20-fast`
+
+如果只想做 Claude 专用入口，可以选「Anthropic」provider 并填 `https://api-direct.dimilinks.com/`。
+
+## 常见问题
+
+- **填了 `https://dimilinks.com/`（缺 `/v1`）**：OpenAI 兼容客户端会 `404`，请补上 `/v1`。
+- **Claude 模型走 OpenAI 协议**：这是允许的，但部分高级特性（Tool Use、思考模式）只在 Anthropic 原生协议生效。需要这些能力时切到 Anthropic provider。
+- **HTTPS 证书报错**：请在系统级信任标准 CA 证书，DimiLinks 不需要额外的私有证书。
+- **大文件上下文 / 视觉**：能力随模型而定，先用 [List models](/api-reference/models) 查 `input_modalities`、`output_modalities`。

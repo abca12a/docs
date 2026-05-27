@@ -7,10 +7,14 @@ icon: "brain"
 
 如果你已经在用 Anthropic 官方 SDK，或想使用 Claude 原生的 system prompt、Tool Use、Prompt Caching 等能力，建议直接调用 `/v1/messages`。它与 Anthropic 官方协议一致。
 
+<Note>
+  Anthropic 原生协议走独立域名 `api-direct.dimilinks.com`，与 OpenAI 兼容入口的 `dimilinks.com/v1` 不是同一个 base URL，密钥共用一把。
+</Note>
+
 ## 请求地址
 
 ```http
-POST https://dimilinks.com/v1/messages
+POST https://api-direct.dimilinks.com/v1/messages
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 anthropic-version: 2023-06-01
@@ -21,7 +25,7 @@ anthropic-version: 2023-06-01
 ## 简单示例
 
 ```bash
-curl "https://dimilinks.com/v1/messages" \
+curl "https://api-direct.dimilinks.com/v1/messages" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
@@ -59,7 +63,7 @@ curl "https://dimilinks.com/v1/messages" \
 加入 `"stream": true`，服务端会按 Anthropic 原生协议依次推回 `message_start` / `content_block_start` / `content_block_delta` / `content_block_stop` / `message_delta` / `message_stop` 事件。
 
 ```bash
-curl "https://dimilinks.com/v1/messages" \
+curl "https://api-direct.dimilinks.com/v1/messages" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
@@ -101,7 +105,7 @@ from anthropic import Anthropic
 
 client = Anthropic(
     api_key="sk-...",
-    base_url="https://dimilinks.com",
+    base_url="https://api-direct.dimilinks.com/",
 )
 
 message = client.messages.create(
@@ -120,7 +124,7 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic({
   apiKey: process.env.DIMILINKS_API_KEY,
-  baseURL: 'https://dimilinks.com',
+  baseURL: 'https://api-direct.dimilinks.com/',
 })
 
 const message = await client.messages.create({
@@ -131,13 +135,13 @@ const message = await client.messages.create({
 ```
 
 <Note>
-  Anthropic SDK 的 `base_url` 指到根域名 `https://dimilinks.com` 即可；SDK 内部会自动拼接 `/v1/messages`。
+  Anthropic SDK 的 `base_url` 指到 `https://api-direct.dimilinks.com/` 即可；SDK 内部会自动拼接 `/v1/messages`。
 </Note>
 
 ## Tool Use
 
 ```bash
-curl "https://dimilinks.com/v1/messages" \
+curl "https://api-direct.dimilinks.com/v1/messages" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \

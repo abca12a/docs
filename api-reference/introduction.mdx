@@ -6,25 +6,28 @@ icon: "terminal"
 
 ## Base URL
 
-```text
-https://dimilinks.com/v1
-```
+按协议族选择对应域名，两端共用同一把 Bearer 密钥：
 
-所有接口共用一把 Bearer 密钥，详见 [Authentication](/api-reference/authentication)。
+| 协议族 | Base URL | 主要路由 |
+| --- | --- | --- |
+| OpenAI 兼容 | `https://dimilinks.com/v1` | `/chat/completions`、`/models`、`/images/*`、`/videos/*`、`/tasks/{id}` |
+| Anthropic 原生 | `https://api-direct.dimilinks.com/` | `/v1/messages` |
+
+详见 [Authentication](/api-reference/authentication)。
 
 ## 路由概览
 
-| 方法 | 路径 | 说明 |
+| 方法 | 完整地址 | 说明 |
 | --- | --- | --- |
-| `GET` | `/v1/models` | 查询当前密钥可用模型 |
-| `POST` | `/v1/chat/completions` | OpenAI 兼容的对话接口；支持 Claude / GPT / Grok 等所有文本模型 |
-| `POST` | `/v1/messages` | Anthropic 原生协议入口，调用 Claude 系列 |
-| `POST` | `/v1/images/generations` | 文生图，支持 JSON 参考图扩展 |
-| `POST` | `/v1/images/edits` | multipart 图生图与编辑 |
-| `POST` | `/v1/videos/generations` | 文生视频与参考图生视频 |
-| `GET` | `/v1/tasks/{task_id}` | 图片与视频通用任务查询 |
-| `GET` | `/v1/videos/{task_id}/content` | 视频任务结果直链（鉴权访问） |
-| `GET` | `/p/img/{task_id}/{idx}` | 图片签名链接（无需 Bearer，URL 自带签名） |
+| `GET` | `https://dimilinks.com/v1/models` | 查询当前密钥可用模型 |
+| `POST` | `https://dimilinks.com/v1/chat/completions` | OpenAI 兼容对话；适用于 GPT / Grok，也支持以 OpenAI 协议调用 Claude |
+| `POST` | `https://api-direct.dimilinks.com/v1/messages` | Anthropic 原生协议；推荐 Claude SDK / Claude Code 使用 |
+| `POST` | `https://dimilinks.com/v1/images/generations` | 文生图，支持 JSON 参考图扩展 |
+| `POST` | `https://dimilinks.com/v1/images/edits` | multipart 图生图与编辑 |
+| `POST` | `https://dimilinks.com/v1/videos/generations` | 文生视频与参考图生视频 |
+| `GET` | `https://dimilinks.com/v1/tasks/{task_id}` | 图片与视频通用任务查询 |
+| `GET` | `https://dimilinks.com/v1/videos/{task_id}/content` | 视频任务结果直链（鉴权访问） |
+| `GET` | `https://dimilinks.com/p/img/{task_id}/{idx}` | 图片签名链接（无需 Bearer，URL 自带签名） |
 
 ## 协议风格
 
@@ -35,9 +38,9 @@ https://dimilinks.com/v1
 ## 异步任务建议
 
 ```text
-POST /v1/images/generations?async=true   # 图片提交
-POST /v1/videos/generations              # 视频提交（始终异步）
-GET  /v1/tasks/{task_id}                 # 通用查询
+POST https://dimilinks.com/v1/images/generations?async=true   # 图片提交
+POST https://dimilinks.com/v1/videos/generations              # 视频提交（始终异步）
+GET  https://dimilinks.com/v1/tasks/{task_id}                 # 通用查询
 ```
 
 图片和视频生成耗时不固定，异步链路可以避免长连接、网关超时和页面关闭引起的丢任务。

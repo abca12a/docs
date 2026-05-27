@@ -15,7 +15,7 @@ DimiLinks 提供与 OpenAI、Anthropic 使用习惯一致的统一 API。一把 
     一段 curl 跑通鉴权和首次对话调用。
   </Card>
   <Card title="对话 / Chat completions" icon="message" href="/api-reference/chat/completions">
-    用 OpenAI 风格协议调用 Claude、GPT、Grok 等文本模型。
+    用 OpenAI 风格协议调用 GPT、Grok 等文本模型。
   </Card>
   <Card title="Anthropic Messages" icon="brain" href="/api-reference/chat/anthropic-messages">
     Anthropic 原生协议入口，调用 Claude 全系列。
@@ -26,25 +26,30 @@ DimiLinks 提供与 OpenAI、Anthropic 使用习惯一致的统一 API。一把 
   <Card title="文生视频 / grok-imagine-video" icon="film" href="/api-reference/videos/grok-imagine-video/generation">
     6 到 20 秒短视频，支持文本与参考图两种模式。
   </Card>
-  <Card title="任务查询" icon="bars-progress" href="/api-reference/images/gpt-image-2/tasks">
-    图片与视频共用 `/v1/tasks/{task_id}`。
+  <Card title="IDE / CLI 接入" icon="laptop-code" href="/api-reference/integrations/ccswitch">
+    Claude Code、Codex CLI、Cursor、Continue、Cherry Studio 等。
   </Card>
 </Columns>
 
 ## Base URL
 
-```text
-https://dimilinks.com/v1
-```
+DimiLinks 按协议族提供两个域名：
+
+| 协议族 | Base URL | 适用 SDK / 客户端 |
+| --- | --- | --- |
+| OpenAI 兼容 | `https://dimilinks.com/v1` | OpenAI SDK、Codex CLI、Cursor、Continue 的 OpenAI provider |
+| Anthropic 原生 | `https://api-direct.dimilinks.com/` | Anthropic SDK、Claude Code、Cherry Studio 的 Anthropic provider |
+
+调用 `/v1/chat/completions`、`/v1/images/*`、`/v1/videos/*`、`/v1/models` 等 OpenAI 风格接口走 `dimilinks.com`；调用 `/v1/messages` 这类 Anthropic 原生接口走 `api-direct.dimilinks.com`。两套域名共用同一把 Bearer 密钥。
 
 ## 推荐链路
 
 ```text
-POST /v1/chat/completions          # 对话（OpenAI 兼容，推荐编程使用）
-POST /v1/messages                  # 对话（Anthropic 原生协议）
-POST /v1/images/generations?async=true   # 图片：异步提交
-POST /v1/videos/generations              # 视频：异步提交（默认即异步）
-GET  /v1/tasks/{task_id}                 # 图片 / 视频任务通用查询
+POST https://dimilinks.com/v1/chat/completions          # 对话（OpenAI 兼容，推荐编程使用）
+POST https://api-direct.dimilinks.com/v1/messages       # 对话（Anthropic 原生协议）
+POST https://dimilinks.com/v1/images/generations?async=true  # 图片：异步提交
+POST https://dimilinks.com/v1/videos/generations             # 视频：异步提交（默认即异步）
+GET  https://dimilinks.com/v1/tasks/{task_id}                # 图片 / 视频任务通用查询
 ```
 
 ## 常用入口
@@ -59,4 +64,7 @@ GET  /v1/tasks/{task_id}                 # 图片 / 视频任务通用查询
 | 编辑图片 | [Create image edit](/api-reference/images/gpt-image-2/edits) |
 | 生成视频 | [Create video generation](/api-reference/videos/grok-imagine-video/generation) |
 | 查询任务 | [Retrieve image task](/api-reference/images/gpt-image-2/tasks) |
+| Claude Code 接入 | [Claude Code](/api-reference/integrations/claude-code) |
+| Codex / Cursor / IDE 接入 | [Codex CLI](/api-reference/integrations/codex-cli) · [VS Code 与其他 IDE](/api-reference/integrations/vscode-and-ides) |
+| 一键导入到本地客户端 | [ccSwitch / Cherry Studio](/api-reference/integrations/ccswitch) |
 | 错误格式 | [Errors](/api-reference/errors) |

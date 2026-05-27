@@ -1,0 +1,82 @@
+---
+title: "ccSwitch / Cherry Studio 一键导入"
+description: "在 DimiLinks 控制台直接把密钥推送到 ccSwitch 或 Cherry Studio。"
+icon: "share-from-square"
+---
+
+如果你已经安装了 [ccSwitch](https://github.com/farion1231/cc-switch) 或 [Cherry Studio](https://github.com/CherryHQ/cherry-studio)，DimiLinks 控制台支持一键把当前密钥推到本地客户端，省去手填 base URL 与模型。
+
+## 一键导入流程
+
+1. 进入 DimiLinks 控制台 → 「API 密钥」页。
+2. 在目标密钥右侧点「导入到 ccSwitch」或「导入到 Cherry Studio」。
+3. 浏览器会弹出系统级跳转，由对应客户端接管 deep link，自动写入 base URL、密钥与模型。
+
+控制台会按密钥的「模型限制」自动选择目标 provider：
+
+| 密钥模型 | 目标 provider | base URL |
+| --- | --- | --- |
+| 仅 Claude 系列 | Anthropic 风格 | `https://api-direct.dimilinks.com/` |
+| 仅 Gemini 系列 | Gemini 风格 | `https://api-direct.dimilinks.com/` |
+| 其它（GPT / Grok / 不限模型） | OpenAI 风格 | `https://dimilinks.com/v1` |
+
+如果导入失败，常见原因：
+
+- 客户端没有安装或未注册 deep link 协议（`ccswitch://` / `cherrystudio://`）。
+- 浏览器拦截了 scheme 跳转，可在地址栏回车一次再试。
+- 操作系统首次见到该协议会询问是否打开本地应用，记得点允许。
+
+## ccSwitch deep link 结构
+
+控制台生成的链接形如：
+
+```text
+ccswitch://v1/import?resource=provider
+  &app=claude
+  &name=My%20Claude%20Workspace
+  &apiKey=sk-...
+  &endpoint=https%3A%2F%2Fapi-direct.dimilinks.com%2F
+  &model=claude-sonnet-4-6
+```
+
+| 参数 | 说明 |
+| --- | --- |
+| `resource` | 固定 `provider` |
+| `app` | `claude` / `codex` / `gemini`，按密钥模型族自动选择 |
+| `name` | 在 ccSwitch 内显示的 provider 名称 |
+| `apiKey` | DimiLinks Bearer 密钥 |
+| `endpoint` | base URL（按密钥协议族取 `dimilinks.com/v1` 或 `api-direct.dimilinks.com/`） |
+| `model` | 当密钥只允许单个模型时附带，未指定时由用户在 ccSwitch 内自己选 |
+
+## Cherry Studio deep link 结构
+
+```text
+cherrystudio://providers/api-keys?v=1&data=<urlsafe-base64>
+```
+
+`data` 是一段 URL-safe base64，解码后是 JSON：
+
+```json
+{
+  "id": "dimilinks-token-42",
+  "name": "Claude Workspace",
+  "apiKey": "sk-...",
+  "baseUrl": "https://api-direct.dimilinks.com/",
+  "type": "anthropic"
+}
+```
+
+`type` 取值与 Cherry Studio 内的 provider 类型对齐：`openai` / `anthropic` / `gemini`。
+
+## 手动添加（不走 deep link）
+
+如果你不想用一键导入，也可以在客户端里手动新建 provider：
+
+| 客户端 | 选择类型 | base URL | 密钥 |
+| --- | --- | --- | --- |
+| Cherry Studio | OpenAI | `https://dimilinks.com/v1` | DimiLinks Bearer |
+| Cherry Studio | Anthropic | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
+| Cherry Studio | Gemini | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
+| ccSwitch | Codex / Claude / Gemini | 同上 | 同上 |
+
+填完后建议先用「测试连接」或发一条最简单的对话，确认链路通。

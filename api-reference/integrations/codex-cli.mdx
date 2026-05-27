@@ -1,0 +1,66 @@
+---
+title: "Codex CLI 接入"
+description: "在 OpenAI Codex CLI 中调用 DimiLinks 的 GPT 系列。"
+icon: "terminal"
+---
+
+[Codex CLI](https://github.com/openai/codex) 通过 `~/.codex/config.toml` 自定义 provider。下面给出最常见的两种接入方式。
+
+## 一键导入（推荐）
+
+DimiLinks 控制台支持把 GPT 类密钥一键推到 [ccSwitch](https://github.com/farion1231/cc-switch)：
+
+1. 在「API 密钥」页对一把不限定模型（或限定为 GPT 系列）的密钥点「导入到 ccSwitch」。
+2. ccSwitch 会自动新增 `Codex` provider，base URL 写为 `https://dimilinks.com/v1`。
+3. Codex 启动前 `cc-switch use codex`，即可让 Codex 用 DimiLinks 走 OpenAI 兼容路由。
+
+deep link 结构见 [ccSwitch / Cherry Studio 一键导入](/api-reference/integrations/ccswitch)。
+
+## 手动配置 `~/.codex/config.toml`
+
+如果你想自己管，编辑 `~/.codex/config.toml`，新增一个 provider：
+
+```toml
+[providers.dimilinks]
+name = "DimiLinks"
+base_url = "https://dimilinks.com/v1"
+api_key = "sk-..."
+default_model = "gpt-5.5"
+```
+
+然后在 Codex 中切换：
+
+```bash
+codex provider use dimilinks
+codex
+```
+
+如果你希望默认就走 DimiLinks，把 `provider = "dimilinks"` 写到 config 顶层即可。
+
+## 用环境变量临时切换
+
+```bash
+export OPENAI_BASE_URL="https://dimilinks.com/v1"
+export OPENAI_API_KEY="sk-..."
+codex
+```
+
+适合临时排查或 CI。
+
+## 推荐模型
+
+| 用途 | 模型 ID |
+| --- | --- |
+| 编码助手 | `gpt-5.3-codex`、`gpt-5.4` |
+| 通用对话 / 长上下文 | `gpt-5.5` |
+| 低成本批量 | `gpt-5.4-mini`、`deepseek-v4-flash` |
+| 思考模式 | `claude-opus-4-7-thinking`（用 OpenAI 兼容协议时也可调） |
+
+模型清单以 `GET https://dimilinks.com/v1/models` 为准。
+
+## 常见问题
+
+- **`401 Invalid token`**：检查 `api_key` / `OPENAI_API_KEY` 是否被 shell 引号截断。
+- **`404`**：base URL 写成 `https://dimilinks.com/`（缺 `/v1`）会触发；OpenAI 兼容入口必须带 `/v1`。
+- **`429 rate_limit_rpm`**：降低并发；`OPENAI_MAX_RETRIES` 默认就会退避，但可以再加大。
+- **想同时保留 OpenAI 官方账号**：在 `config.toml` 里多保留一个 provider 即可，按需 `provider use` 切换。
