@@ -5,7 +5,7 @@ openapi: "GET /models"
 icon: "boxes-stacked"
 ---
 
-查询当前密钥可以调用的模型列表。图片能力默认使用 `gpt-image-2`。
+查询当前密钥可以调用的模型列表。返回的 `data[]` 同时包含文本、图片、视频模型，可按 `id` 命名前缀区分。
 
 ## 请求
 
@@ -20,18 +20,29 @@ curl "https://dimilinks.com/v1/models" \
 {
   "object": "list",
   "data": [
-    {
-      "id": "gpt-image-2",
-      "object": "model",
-      "created": 1777080000,
-      "owned_by": "chatgpt"
-    }
+    { "id": "claude-opus-4-7",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-sonnet-4-6",     "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-haiku-4-5-20251001", "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.5",               "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.4-mini",          "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-image-2",           "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "grok-imagine-video",    "object": "model", "created": 1777080000, "owned_by": "" }
   ]
 }
 ```
 
+## 推荐模型
+
+| 用途 | 推荐模型 |
+| --- | --- |
+| 通用对话、写作、长文档处理 | `claude-sonnet-4-6`、`claude-opus-4-7`、`gpt-5.5` |
+| 复杂推理 / 编码 | `claude-opus-4-7`、`gpt-5.3-codex`、`gpt-5.4` |
+| 低成本批量任务 | `claude-haiku-4-5-20251001`、`gpt-5.4-mini`、`deepseek-v4-flash` |
+| 图片生成 / 编辑 | `gpt-image-2` |
+| 视频生成 | `grok-imagine-video` |
+
 ## 使用建议
 
-- 新接入可以默认选择 `gpt-image-2`。
-- 如果你的产品支持多模型，请先读取该接口再展示模型选项。
-- 如果返回 `403 model_not_allowed`，请检查 API Key 的模型权限。
+- 模型清单会随线上能力调整，请把 `/v1/models` 作为运行时来源，不要写死硬编码。
+- 如果返回 `403 model_not_allowed`，请检查这把密钥是否被授权调用该模型。
+- 文本模型默认走 `/v1/chat/completions` 或 `/v1/messages`；图片走 `/v1/images/*`；视频走 `/v1/videos/*`。

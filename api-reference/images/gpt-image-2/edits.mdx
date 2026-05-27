@@ -1,17 +1,18 @@
 ---
 title: "Create image edit"
-description: "使用 multipart/form-data 上传参考图并生成编辑结果。"
+description: "用 multipart/form-data 上传参考图并生成编辑结果。"
 openapi: "POST /images/edits"
 icon: "wand-magic-sparkles"
 ---
 
-`/v1/images/edits` 用于上传图片文件并生成编辑结果。当前更推荐用 [Create image generation](/api-reference/images/gpt-image-2/generation) 搭配 `image_urls` 走异步链路。
+`/v1/images/edits` 接受 `multipart/form-data`，把参考图作为文件上传。如果你的参考图已经是 URL 或 Data URL，更推荐用 [Create image generation](/api-reference/images/gpt-image-2/generation) 搭配 `image_urls` 走异步链路，更稳定。
 
 ## 请求地址
 
 ```http
 POST https://dimilinks.com/v1/images/edits
 Content-Type: multipart/form-data
+Authorization: Bearer <DIMILINKS_API_KEY>
 ```
 
 至少上传一张 `image` 文件。
@@ -30,6 +31,8 @@ curl "https://dimilinks.com/v1/images/edits" \
 
 ## 多图示例
 
+最多上传 9 张参考图。
+
 ```bash
 curl "https://dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
@@ -46,7 +49,7 @@ curl "https://dimilinks.com/v1/images/edits" \
 | 字段 | 说明 |
 | --- | --- |
 | `image` | 单文件，推荐。 |
-| `image[]` | 多文件。 |
+| `image[]` | 多文件，最多 9 个。 |
 | `images` | 多文件兼容字段。 |
 | `images[]` | 多文件兼容字段。 |
 | `image_1`、`image_2` | 编号字段兼容。 |
@@ -54,7 +57,7 @@ curl "https://dimilinks.com/v1/images/edits" \
 
 ## 响应
 
-成功后返回图片结果：
+成功后返回与生成接口一致的结构：
 
 ```json
 {

@@ -1,0 +1,88 @@
+---
+title: "Retrieve video task"
+description: "查询视频生成任务的状态和结果链接。"
+openapi: "GET /tasks/{task_id}"
+icon: "bars-progress"
+---
+
+视频与图片任务共用 `/v1/tasks/{task_id}`。提交 `/v1/videos/generations` 后拿到 `task_id`，再用本接口轮询。
+
+## 请求
+
+```bash
+curl "https://dimilinks.com/v1/tasks/video_xxx" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## 进行中响应
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "processing",
+    "progress": 35,
+    "created_at": 1777080000
+  }
+}
+```
+
+## 成功响应
+
+任务进入 `completed` 后，结果视频可通过 `/v1/videos/{task_id}/content` 拉取（需要带 Bearer 鉴权）。
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "completed",
+    "progress": 100,
+    "created_at": 1777080000,
+    "completed_at": 1777080300
+  }
+}
+```
+
+```bash
+curl -L "https://dimilinks.com/v1/videos/video_xxx/content" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -o video.mp4
+```
+
+如果你的产品要把视频展示给终端用户，建议在你的服务端代理这一次下载：先用密钥取到视频，再以你自己的鉴权下发，避免把 DimiLinks 密钥暴露到浏览器。
+
+## 失败响应
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "failed",
+    "progress": 100,
+    "created_at": 1777080000,
+    "completed_at": 1777080300,
+    "error": {
+      "code": "upstream_error",
+      "message": "视频生成失败，请稍后重试。"
+    }
+  }
+}
+```
+
+## 状态
+
+| 状态 | 含义 | 调用方建议 |
+| --- | --- | --- |
+| `queued`、`pending`、`submitted` | 等待处理 | 继续轮询 |
+| `processing`、`in_progress`、`running` | 生成中 | 继续轮询 |
+| `completed`、`success` | 已完成 | 拉取 `/v1/videos/{task_id}/content` |
+| `failed`、`error`、`cancelled` | 已失败 | 展示错误提示，允许用户重试 |
+
+## 轮询建议
+
+- 每 3 到 5 秒查询一次，比图片任务略宽松。
+- 单条任务最长建议轮询 10 分钟；超时后直接告知用户失败并允许重试。
+- 出现 `404` 立即停止轮询，多半是任务 ID 错或不属于当前密钥。

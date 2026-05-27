@@ -1,36 +1,35 @@
 ---
 title: "DimiLinks API 文档"
-description: "使用 gpt-image-2 生成、编辑和查询图片任务。"
+description: "面向开发者：调用 Claude / GPT 文本对话、gpt-image-2 图片创作、grok-imagine-video 视频生成。"
 icon: "sparkles"
 ---
 
-DimiLinks 提供兼容 OpenAI Images 使用习惯的图片 API。你可以用服务端 API Key 提交文生图、图生图和图片编辑请求，并通过任务接口稳定获取结果。
+DimiLinks 提供与 OpenAI、Anthropic 使用习惯一致的统一 API。一把 Bearer 密钥就能调用 Claude、GPT、Grok 系列文本模型，并提交 `gpt-image-2` 图片任务和 `grok-imagine-video` 视频任务。
 
 <Note>
-  推荐使用异步链路：提交任务后轮询任务状态。图片生成通常需要几十秒到数分钟，异步方式更适合线上应用。
+  图片和视频生成都建议走异步链路：提交任务后用任务接口轮询结果。
 </Note>
 
 <Columns cols={2}>
   <Card title="快速开始" icon="rocket" href="/quickstart">
-    用一个完整示例完成提交、轮询和取图。
+    一段 curl 跑通鉴权和首次对话调用。
   </Card>
-  <Card title="文生图" icon="image" href="/api-reference/images/gpt-image-2/generation">
-    查看 `gpt-image-2` 的请求参数和返回结构。
+  <Card title="对话 / Chat completions" icon="message" href="/api-reference/chat/completions">
+    用 OpenAI 风格协议调用 Claude、GPT、Grok 等文本模型。
+  </Card>
+  <Card title="Anthropic Messages" icon="brain" href="/api-reference/chat/anthropic-messages">
+    Anthropic 原生协议入口，调用 Claude 全系列。
+  </Card>
+  <Card title="文生图 / gpt-image-2" icon="image" href="/api-reference/images/gpt-image-2/generation">
+    1K / 2K / 4K 图片生成、编辑与异步任务查询。
+  </Card>
+  <Card title="文生视频 / grok-imagine-video" icon="film" href="/api-reference/videos/grok-imagine-video/generation">
+    6 到 20 秒短视频，支持文本与参考图两种模式。
   </Card>
   <Card title="任务查询" icon="bars-progress" href="/api-reference/images/gpt-image-2/tasks">
-    轮询 `queued`、`in_progress`、`succeeded` 和 `failed` 状态。
-  </Card>
-  <Card title="尺寸与清晰度" icon="expand" href="/api-reference/images/gpt-image-2/sizes">
-    选择画幅比例、1K、2K 和 4K 输出档位。
+    图片与视频共用 `/v1/tasks/{task_id}`。
   </Card>
 </Columns>
-
-## 推荐接入方式
-
-```text
-POST /v1/images/generations?async=true
-GET  /v1/tasks/{task_id}
-```
 
 ## Base URL
 
@@ -38,6 +37,15 @@ GET  /v1/tasks/{task_id}
 https://dimilinks.com/v1
 ```
 
+## 推荐链路
+
+```text
+POST /v1/chat/completions          # 对话（OpenAI 兼容，推荐编程使用）
+POST /v1/messages                  # 对话（Anthropic 原生协议）
+POST /v1/images/generations?async=true   # 图片：异步提交
+POST /v1/videos/generations              # 视频：异步提交（默认即异步）
+GET  /v1/tasks/{task_id}                 # 图片 / 视频任务通用查询
+```
 
 ## 常用入口
 
@@ -45,7 +53,10 @@ https://dimilinks.com/v1
 | --- | --- |
 | 鉴权方式 | [Authentication](/api-reference/authentication) |
 | 查询模型 | [List models](/api-reference/models) |
+| 文本对话 (OpenAI 兼容) | [Chat completions](/api-reference/chat/completions) |
+| 文本对话 (Anthropic 原生) | [Anthropic Messages](/api-reference/chat/anthropic-messages) |
 | 生成图片 | [Create image generation](/api-reference/images/gpt-image-2/generation) |
 | 编辑图片 | [Create image edit](/api-reference/images/gpt-image-2/edits) |
+| 生成视频 | [Create video generation](/api-reference/videos/grok-imagine-video/generation) |
 | 查询任务 | [Retrieve image task](/api-reference/images/gpt-image-2/tasks) |
-| APIMart 兼容 | [APIMart compatibility](/api-reference/compatibility/apimart) |
+| 错误格式 | [Errors](/api-reference/errors) |

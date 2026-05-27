@@ -1,0 +1,99 @@
+---
+title: "Create video generation"
+description: "用 grok-imagine-video 生成 6 到 20 秒短视频，支持文本与参考图两种模式。"
+openapi: "POST /videos/generations"
+icon: "film"
+---
+
+`/v1/videos/generations` 提交后立即返回 `task_id`。生成耗时取决于时长与清晰度（一般 1 到 5 分钟），用 [`/v1/tasks/{task_id}`](/api-reference/videos/grok-imagine-video/tasks) 轮询任务状态。
+
+<Note>
+  视频接口当前只支持 `grok-imagine-video` 模型；推理与计费会带上 Grok 渠道的特别价格。
+</Note>
+
+## 请求地址
+
+```http
+POST https://dimilinks.com/v1/videos/generations
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## 文生视频示例
+
+```bash
+curl "https://dimilinks.com/v1/videos/generations" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-video",
+    "prompt": "一群霓虹色水母在深海中缓慢漂浮，光线像电影质感",
+    "seconds": "6",
+    "size": "1280x720",
+    "resolution_name": "720p",
+    "preset": "normal"
+  }'
+```
+
+成功响应：
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "queued"
+  }
+}
+```
+
+拿到 `task_id` 后调用 [Retrieve video task](/api-reference/videos/grok-imagine-video/tasks) 查询。
+
+## 参考图生视频示例
+
+参考图必须先转成 `data:image/...;base64,...` Data URL；浏览器侧的 `blob:` URL 不能直接传，需要先在服务端读到二进制再编码。
+
+```bash
+curl "https://dimilinks.com/v1/videos/generations" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-video",
+    "prompt": "保持人物主体一致，让镜头围绕主体环绕一周",
+    "seconds": "10",
+    "size": "1280x720",
+    "resolution_name": "720p",
+    "preset": "normal",
+    "input_reference": [
+      "data:image/png;base64,iVBORw0KGgo..."
+    ]
+  }'
+```
+
+## 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | 当前固定为 `grok-imagine-video`。 |
+| `prompt` | string | 是 | 视频内容描述，最长 2500 字符。 |
+| `seconds` | string | 是 | 时长，可选 `"6"` / `"10"` / `"12"` / `"16"` / `"20"`，单位秒。 |
+| `size` | string | 是 | 画面尺寸：`1280x720`（16:9）、`720x1280`（9:16）、`1024x1024`（1:1）。 |
+| `resolution_name` | string | 是 | 清晰度档位：`720p`（高清）或 `480p`（标清）。 |
+| `preset` | string | 是 | 风格预设：`normal`（标准）、`fun`（趣味高）、`spicy`（高强度）、`custom`（自定义提示）。 |
+| `input_reference` | string[] | 否 | 参考图 Data URL 数组，最多 7 张；提供时进入参考图生视频模式。 |
+| `group` | string | 否 | 渠道分组，控制台调用会带 `default`，第三方一般留空。 |
+
+## 时长与清晰度组合
+
+- `720p` 适合最终成片；`480p` 出图更快，适合预览。
+- 时长越长，生成耗时和单价越高，建议先用 `seconds: "6"` 走通链路。
+- 同一段提示语切到 `9:16` 或 `1:1` 时，建议在描述里说明主体在画面内的位置，避免被裁掉。
+
+## 错误处理
+
+视频接口同样使用 OpenAI 风格的 `error` 包装，常见错误见 [Errors](/api-reference/errors)。如果 `400` 提示参考图问题，请检查：
+
+- 参考图是否是 PNG / JPEG / WebP；
+- 是否使用了 Data URL（不是 `blob:` 也不是普通 HTTP URL）；
+- 单张参考图小于 10 MB；
+- 参考图数量不超过 7 张。

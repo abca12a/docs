@@ -4,7 +4,9 @@ description: "DimiLinks API 的错误响应格式和常见 HTTP 状态。"
 icon: "circle-exclamation"
 ---
 
-默认错误响应使用 OpenAI 风格的 `error` 包装。
+DimiLinks 默认使用 OpenAI 风格的 `error` 包装；调用 `/v1/messages` 时则使用 Anthropic 原生错误格式（`{"type":"error","error":{...}}`）。
+
+OpenAI 风格：
 
 ```json
 {
@@ -16,23 +18,35 @@ icon: "circle-exclamation"
 }
 ```
 
+Anthropic 风格：
+
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "invalid_request_error",
+    "message": "messages 不能为空"
+  }
+}
+```
+
 ## 常见错误
 
 | HTTP | code | 含义 | 调用方建议 |
 | ---: | --- | --- | --- |
-| `400` | `invalid_request_error` / `invalid_reference_image` | 参数错误、prompt 为空、参考图异常。 | 提示用户修改参数。 |
-| `401` | `missing_api_key` / `invalid_api_key` | API Key 缺失或错误。 | 检查密钥配置。 |
-| `402` | `insufficient_balance` | 余额不足。 | 提示充值或联系管理员。 |
-| `403` | `model_not_allowed` | API Key 没有模型权限。 | 检查模型白名单。 |
-| `404` | `not_found` | 任务不存在或不属于当前用户。 | 停止轮询。 |
-| `429` | `rate_limit_rpm` | RPM 限流。 | 降低并发，稍后重试。 |
-| `500` | `internal_error` / `billing_error` | 服务内部异常。 | 记录日志并稍后重试。 |
-| `502` / `503` | `upstream_error` / `service_unavailable` | 图片渠道暂时不可用。 | 可重试或提示用户稍后再试。 |
+| `400` | `invalid_request_error` / `invalid_reference_image` | 参数错误、prompt 为空、参考图异常 | 提示用户修改参数 |
+| `401` | `missing_api_key` / `invalid_api_key` | 密钥缺失或错误 | 检查密钥配置 |
+| `402` | `insufficient_balance` | 余额不足 | 提示充值或联系管理员 |
+| `403` | `model_not_allowed` | 当前密钥没有该模型权限 | 检查模型白名单或更换密钥 |
+| `404` | `not_found` | 任务不存在或不属于当前用户 | 停止轮询 |
+| `429` | `rate_limit_rpm` / `rate_limit_tpm` | 限流 | 退避后重试，降低并发 |
+| `500` | `internal_error` / `billing_error` | 服务内部异常 | 记录日志并稍后重试 |
+| `502` / `503` | `upstream_error` / `service_unavailable` | 上游渠道暂时不可用 | 可允许用户重试 |
 
 ## 处理建议
 
-- 对 `400` 展示明确的参数提示。
-- 对 `401` 和 `403` 提示检查密钥或权限。
-- 对 `429` 做退避重试，不要立即高频重试。
-- 对 `502` 和 `503` 可允许用户重试。
-- 对 `404` 任务查询停止轮询，避免浪费请求。
+- `400` 把 `error.message` 直接展示给用户，便于调整输入。
+- `401` / `403` 提示检查密钥或模型权限，不要静默重试。
+- `429` 建议指数退避，并降低并发；不要立即高频重试。
+- `5xx` / `502` / `503` 可允许用户重试，但要记录日志便于排查上游。
+- 任务接口返回 `404` 时立即停止轮询，避免浪费请求。

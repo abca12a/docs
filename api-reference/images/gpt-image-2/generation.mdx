@@ -1,20 +1,22 @@
 ---
 title: "Create image generation"
-description: "使用 gpt-image-2 生成图片，支持异步任务和 JSON 参考图。"
+description: "用 gpt-image-2 生成图片，支持异步任务和 JSON 参考图。"
 openapi: "POST /images/generations"
 icon: "image"
 ---
 
-使用 `gpt-image-2` 从文本生成图片。也可以通过 `image_urls` 携带参考图，实现图生图或风格迁移。
+`gpt-image-2` 是 DimiLinks 的图片生成模型，支持文生图与图生图。可以通过 `image_urls` 字段携带参考图，最多 9 张。
 
 <Note>
-  推荐加上 `?async=true`。同步模式会等待图片完成后才返回，容易受到调用方超时影响。
+  推荐加上 `?async=true`。同步模式会等图片完成后才返回，更容易被网关或客户端超时打断。
 </Note>
 
 ## 请求地址
 
 ```http
 POST https://dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
 ```
 
 ## 文生图示例
@@ -82,11 +84,11 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 
 ## 结果字段说明
 
-`data[].url` 不一定永远是公网图片链接。你需要同时兼容以下三种形式：
+`data[].url` 不一定是公网图片链接，请同时兼容三种形式：
 
-- `/p/img/...`：相对路径，展示或下载前补成 `https://dimilinks.com/p/img/...`。
-- `https://...`：完整图片链接，可以直接请求或展示。
-- `data:image/...;base64,...`：Data URL，字符串本身就是图片内容。网页可直接作为 `<img src>` 使用；服务端脚本保存文件时，需要解码逗号后的 base64。
+- `/p/img/...`：相对路径，展示或下载前补成 `https://dimilinks.com/p/img/...`。该路径不需要 Bearer，URL 自带签名和过期时间。
+- `https://...`：完整图片链接，可直接请求或展示。
+- `data:image/...;base64,...`：Data URL，字符串本身就是图片内容。网页可直接作为 `<img src>`；服务端脚本保存文件时需要先解码 base64。
 
 ## 参数
 
@@ -94,16 +96,18 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 | --- | --- | --- | --- |
 | `model` | string | `gpt-image-2` | 模型名称。 |
 | `prompt` | string | 必填 | 生图或编辑提示词。 |
-| `n` | integer | `1` | 当前建议按 `1` 设计。接口会把过小或过大的值归一到支持范围。 |
-| `size` | string | `1024x1024` | 支持比例如 `1:1`、`16:9`，也支持像素如 `3840x2160`。 |
-| `resolution` | string | 空 | 推荐清晰度字段：`1k`、`2k`、`4k`。 |
-| `output_format` | string | 空 | 输出格式建议使用 `png`、`jpeg` 或 `webp`。 |
-| `output_compression` | integer | 空 | 输出压缩质量，通常配合 `jpeg` 或 `webp`。 |
-| `background` | string | 空 | 背景偏好，如 `auto`、`transparent`、`opaque`。 |
-| `moderation` | string | 空 | 内容审核强度，如 `auto`、`low`。 |
+| `n` | integer | `1` | 单次生成数量。`1k` 档固定为 `1`，`2k` / `4k` 档最多 `4`。 |
+| `size` | string | `1024x1024` | 比例如 `1:1`、`16:9`，或具体像素 `WxH`（例如 `3840x2160`）。 |
+| `resolution` | string | 空 | 清晰度档位：`1k` / `2k` / `4k`。 |
+| `output_format` | string | 空 | 输出格式：`png` / `jpeg` / `webp`。 |
+| `output_compression` | integer | 空 | 输出压缩质量，配合 `jpeg` 或 `webp` 使用。 |
+| `background` | string | 空 | 背景偏好：`auto` / `transparent` / `opaque`。 |
+| `moderation` | string | 空 | 内容审核强度：`auto` / `low`。 |
 | `user` | string | 空 | 调用方用户标识，便于审计。 |
-| `wait_for_result` | boolean | `true` | 传 `false` 可进入异步提交。 |
-| `image_urls` | string / array / object | 空 | JSON 参考图字段，最多 4 张。 |
+| `wait_for_result` | boolean | `true` | 传 `false` 进入异步提交。 |
+| `image_urls` | string \| array \| object | 空 | JSON 参考图字段，最多 9 张。 |
+| `mask_url` | string | 空 | 局部重绘遮罩，需配合至少 1 张参考图。 |
+| `response_format` | string | 空 | 传 `b64_json` 时返回结果直接是 base64；不建议默认开启。 |
 
 ## 开启异步的方式
 
@@ -131,7 +135,17 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 
 ## 参考图限制
 
-- 同一次请求最多 4 张参考图。
+- 同一次请求最多 9 张参考图。
 - 单张参考图最大 20 MB。
-- 支持 HTTP(S) URL、data URL 和纯 base64。
-- 浏览器 `blob:` URL 不能直接传入，请先上传到你的服务端或转成 data URL。
+- 支持 HTTP(S) URL、Data URL 和纯 base64。
+- 浏览器 `blob:` URL 不能直接传入，请先上传到你的服务端或转成 Data URL。
+
+## 清晰度档位的能力差异
+
+| 档位 | 单次最多 `n` | 典型耗时 | 说明 |
+| --- | ---: | ---: | --- |
+| `1k` | 1 | 约 60 秒 | 起步档，适合预览或低成本批量。 |
+| `2k` | 4 | 约 120 秒 | 推荐档，适合大多数业务出图。 |
+| `4k` | 4 | 约 180 秒 | 高保真档，部分极端比例（如 `21:9`）也可用。 |
+
+具体单价以控制台「价格」页为准；不同档位的价格独立计算。

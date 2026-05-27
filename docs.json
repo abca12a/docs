@@ -34,11 +34,19 @@
             "pages": [
               "api-reference/introduction",
               "api-reference/authentication",
-              "api-reference/models"
+              "api-reference/models",
+              "api-reference/errors"
             ]
           },
           {
-            "group": "Images / gpt-image-2",
+            "group": "对话 / Chat",
+            "pages": [
+              "api-reference/chat/completions",
+              "api-reference/chat/anthropic-messages"
+            ]
+          },
+          {
+            "group": "图片 / gpt-image-2",
             "pages": [
               "api-reference/images/gpt-image-2/generation",
               "api-reference/images/gpt-image-2/edits",
@@ -47,10 +55,10 @@
             ]
           },
           {
-            "group": "兼容与错误",
+            "group": "视频 / grok-imagine-video",
             "pages": [
-              "api-reference/compatibility/apimart",
-              "api-reference/errors"
+              "api-reference/videos/grok-imagine-video/generation",
+              "api-reference/videos/grok-imagine-video/tasks"
             ]
           }
         ]

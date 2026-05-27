@@ -1,10 +1,10 @@
 ---
 title: "Authentication"
-description: "使用 Bearer Token 调用 DimiLinks API。"
+description: "用 Bearer Token 调用 DimiLinks 全部 API。"
 icon: "key"
 ---
 
-所有 `/v1/*` API 请求都必须携带服务端 API Key。
+所有 `/v1/*` 接口都使用同一把 Bearer 密钥，包括对话、图片和视频。
 
 ```http
 Authorization: Bearer <DIMILINKS_API_KEY>
@@ -20,13 +20,50 @@ curl "https://dimilinks.com/v1/models" \
 
 ## 安全建议
 
-- 在服务端保存 API Key。
-- 不要把完整 API Key 放入浏览器、移动端安装包或公开仓库。
-- 如果你需要让终端用户发起图片生成，请由你的服务端代理请求。
-- 发现密钥泄露后，请立即禁用旧密钥并创建新密钥。
+- 密钥保存在服务端的环境变量、Secrets Manager 或 KMS，不要写进前端源码或客户端安装包。
+- 让终端用户发起请求时，由你的服务端转发，不要把密钥透出给浏览器。
+- 仓库 `.env` 文件加入 `.gitignore`；别把密钥贴进截图或日志。
+- 发现泄露后，立即在控制台禁用旧密钥并新建一把。
 
-## 图片结果 URL
+## 用官方 SDK 直连
 
-图片结果 URL 通常形如 `/p/img/...`。它不需要 Bearer Token，但依赖 URL 自带的过期时间和签名参数。
+DimiLinks 与 OpenAI、Anthropic 官方 SDK 协议兼容，把 base URL 指过来即可。
 
-如果 URL 已过期，请重新查询任务或重新生成图片。
+OpenAI Python SDK：
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-...",
+    base_url="https://dimilinks.com/v1",
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet-4-6",
+    messages=[{"role": "user", "content": "你好"}],
+)
+```
+
+Anthropic Python SDK：
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-...",
+    base_url="https://dimilinks.com",
+)
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "你好"}],
+)
+```
+
+## 图片 / 视频结果链接
+
+- 图片签名链接形如 `/p/img/...`，使用 URL 自带的过期时间和签名参数访问，**不**需要再附带 Bearer。
+- 视频结果链接形如 `/v1/videos/{task_id}/content`，**需要**用 Bearer 访问；可以代理回你的服务端再下发。
+- 如果链接已过期，请重新查询任务。

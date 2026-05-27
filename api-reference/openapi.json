@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "DimiLinks Images API",
-    "description": "DimiLinks gpt-image-2 image generation, editing, and task APIs.",
-    "version": "1.0.0"
+    "title": "DimiLinks API",
+    "description": "DimiLinks unified API for chat (OpenAI-compatible and Anthropic native), image generation/editing, and video generation.",
+    "version": "1.1.0"
   },
   "servers": [
     {
@@ -16,15 +16,11 @@
     }
   ],
   "tags": [
-    {
-      "name": "Models"
-    },
-    {
-      "name": "Images"
-    },
-    {
-      "name": "Tasks"
-    }
+    { "name": "Models" },
+    { "name": "Chat" },
+    { "name": "Images" },
+    { "name": "Videos" },
+    { "name": "Tasks" }
   ],
   "paths": {
     "/models": {
@@ -37,15 +33,86 @@
             "description": "Available models",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ModelList"
-                }
+                "schema": { "$ref": "#/components/schemas/ModelList" }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/chat/completions": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Create chat completion",
+        "description": "OpenAI-compatible chat completions endpoint. Supports Claude / GPT / Grok and other text models.",
+        "operationId": "createChatCompletion",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChatCompletionRequest" }
+            }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat completion result. When `stream` is true the response is text/event-stream.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatCompletionResponse" }
+              },
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/messages": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Create Anthropic message",
+        "description": "Anthropic native messages endpoint for Claude models.",
+        "operationId": "createAnthropicMessage",
+        "parameters": [
+          {
+            "name": "anthropic-version",
+            "in": "header",
+            "required": false,
+            "description": "Anthropic API version, e.g. 2023-06-01.",
+            "schema": { "type": "string", "example": "2023-06-01" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AnthropicMessageRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Anthropic message response. When `stream` is true the response is text/event-stream with Anthropic native events.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AnthropicMessageResponse" }
+              },
+              "text/event-stream": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
     },
@@ -59,35 +126,20 @@
             "name": "async",
             "in": "query",
             "description": "Set to true to submit an async image task.",
-            "schema": {
-              "type": "boolean"
-            }
+            "schema": { "type": "boolean" }
           },
           {
             "name": "wait_for_result",
             "in": "query",
             "description": "Set to false to submit an async image task.",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "compat",
-            "in": "query",
-            "description": "Set to apimart for APIMart-compatible response shape.",
-            "schema": {
-              "type": "string",
-              "enum": ["apimart"]
-            }
+            "schema": { "type": "boolean" }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ImageGenerationRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/ImageGenerationRequest" }
             }
           }
         },
@@ -98,32 +150,17 @@
               "application/json": {
                 "schema": {
                   "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/ImageSubmitResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ImageResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ApimartSubmitResponse"
-                    }
+                    { "$ref": "#/components/schemas/ImageSubmitResponse" },
+                    { "$ref": "#/components/schemas/ImageResponse" }
                   ]
                 }
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "429": {
-            "$ref": "#/components/responses/RateLimited"
-          }
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
     },
@@ -136,9 +173,7 @@
           "required": true,
           "content": {
             "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/ImageEditRequest"
-              }
+              "schema": { "$ref": "#/components/schemas/ImageEditRequest" }
             }
           }
         },
@@ -147,53 +182,102 @@
             "description": "Image edit result",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImageResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/ImageResponse" }
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/videos/generations": {
+      "post": {
+        "tags": ["Videos"],
+        "summary": "Create video generation",
+        "operationId": "createVideoGeneration",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/VideoGenerationRequest" }
+            }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Video task submission",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VideoSubmitResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
     },
     "/tasks/{task_id}": {
       "get": {
         "tags": ["Tasks"],
-        "summary": "Retrieve image task",
-        "operationId": "retrieveImageTask",
+        "summary": "Retrieve task",
+        "description": "Retrieve image or video generation task by id.",
+        "operationId": "retrieveTask",
         "parameters": [
           {
             "name": "task_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Image task",
+            "description": "Image or video task",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageTask"
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/ImageTask" },
+                    { "$ref": "#/components/schemas/VideoTask" }
+                  ]
                 }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/videos/{task_id}/content": {
+      "get": {
+        "tags": ["Videos"],
+        "summary": "Retrieve video content",
+        "description": "Authenticated video file download.",
+        "operationId": "retrieveVideoContent",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "Video binary",
+            "content": {
+              "video/mp4": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
     },
@@ -207,9 +291,7 @@
             "name": "task_id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -217,18 +299,12 @@
             "description": "Legacy image task",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LegacyImageTask"
-                }
+                "schema": { "$ref": "#/components/schemas/LegacyImageTask" }
               }
             }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
     }
@@ -245,9 +321,7 @@
         "description": "Invalid request",
         "content": {
           "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            }
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
           }
         }
       },
@@ -255,9 +329,7 @@
         "description": "Missing or invalid API key",
         "content": {
           "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            }
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
           }
         }
       },
@@ -265,9 +337,7 @@
         "description": "Model is not allowed for this API key",
         "content": {
           "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            }
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
           }
         }
       },
@@ -275,9 +345,7 @@
         "description": "Task not found",
         "content": {
           "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            }
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
           }
         }
       },
@@ -285,9 +353,7 @@
         "description": "Rate limit exceeded",
         "content": {
           "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            }
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
           }
         }
       }
@@ -296,15 +362,10 @@
       "ModelList": {
         "type": "object",
         "properties": {
-          "object": {
-            "type": "string",
-            "example": "list"
-          },
+          "object": { "type": "string", "example": "list" },
           "data": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Model"
-            }
+            "items": { "$ref": "#/components/schemas/Model" }
           }
         },
         "required": ["object", "data"]
@@ -312,197 +373,268 @@
       "Model": {
         "type": "object",
         "properties": {
-          "id": {
+          "id": { "type": "string", "example": "claude-sonnet-4-6" },
+          "object": { "type": "string", "example": "model" },
+          "created": { "type": "integer", "example": 1777080000 },
+          "owned_by": { "type": "string", "example": "" }
+        }
+      },
+      "ChatMessage": {
+        "type": "object",
+        "properties": {
+          "role": {
             "type": "string",
-            "example": "gpt-image-2"
+            "enum": ["system", "user", "assistant", "tool"]
           },
-          "object": {
-            "type": "string",
-            "example": "model"
+          "content": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "array",
+                "items": { "type": "object", "additionalProperties": true }
+              }
+            ]
           },
-          "created": {
-            "type": "integer",
-            "example": 1777080000
+          "name": { "type": "string" },
+          "tool_call_id": { "type": "string" }
+        },
+        "required": ["role"]
+      },
+      "ChatCompletionRequest": {
+        "type": "object",
+        "properties": {
+          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "messages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ChatMessage" }
           },
-          "owned_by": {
-            "type": "string",
-            "example": "chatgpt"
+          "stream": { "type": "boolean", "default": false },
+          "temperature": { "type": "number" },
+          "top_p": { "type": "number" },
+          "max_tokens": { "type": "integer" },
+          "stop": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          },
+          "presence_penalty": { "type": "number" },
+          "frequency_penalty": { "type": "number" },
+          "tools": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          },
+          "tool_choice": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "object", "additionalProperties": true }
+            ]
+          },
+          "response_format": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "user": { "type": "string" }
+        },
+        "required": ["model", "messages"]
+      },
+      "ChatCompletionChoice": {
+        "type": "object",
+        "properties": {
+          "index": { "type": "integer" },
+          "message": { "$ref": "#/components/schemas/ChatMessage" },
+          "finish_reason": { "type": "string" }
+        }
+      },
+      "ChatCompletionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "chatcmpl_xxx" },
+          "object": { "type": "string", "example": "chat.completion" },
+          "created": { "type": "integer", "example": 1777080000 },
+          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "choices": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ChatCompletionChoice" }
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "prompt_tokens": { "type": "integer" },
+              "completion_tokens": { "type": "integer" },
+              "total_tokens": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "AnthropicContentBlock": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "example": "text" },
+          "text": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "AnthropicMessage": {
+        "type": "object",
+        "properties": {
+          "role": { "type": "string", "enum": ["user", "assistant"] },
+          "content": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/AnthropicContentBlock" }
+              }
+            ]
+          }
+        },
+        "required": ["role", "content"]
+      },
+      "AnthropicMessageRequest": {
+        "type": "object",
+        "properties": {
+          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "max_tokens": { "type": "integer", "example": 1024 },
+          "messages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AnthropicMessage" }
+          },
+          "system": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/AnthropicContentBlock" }
+              }
+            ]
+          },
+          "temperature": { "type": "number" },
+          "top_p": { "type": "number" },
+          "top_k": { "type": "integer" },
+          "stop_sequences": { "type": "array", "items": { "type": "string" } },
+          "stream": { "type": "boolean", "default": false },
+          "tools": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          },
+          "tool_choice": { "type": "object", "additionalProperties": true },
+          "metadata": { "type": "object", "additionalProperties": true },
+          "thinking": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["model", "max_tokens", "messages"]
+      },
+      "AnthropicMessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "msg_xxx" },
+          "type": { "type": "string", "example": "message" },
+          "role": { "type": "string", "example": "assistant" },
+          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AnthropicContentBlock" }
+          },
+          "stop_reason": { "type": "string" },
+          "stop_sequence": { "type": "string" },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "input_tokens": { "type": "integer" },
+              "output_tokens": { "type": "integer" }
+            }
           }
         }
       },
       "ImageGenerationRequest": {
         "type": "object",
         "properties": {
-          "model": {
-            "type": "string",
-            "default": "gpt-image-2"
-          },
-          "prompt": {
-            "type": "string"
-          },
+          "model": { "type": "string", "default": "gpt-image-2" },
+          "prompt": { "type": "string" },
           "n": {
             "type": "integer",
             "default": 1,
             "minimum": 1,
-            "maximum": 4
+            "maximum": 4,
+            "description": "1k resolution allows n=1 only; 2k and 4k allow up to 4."
           },
           "size": {
             "type": "string",
             "examples": ["1:1", "16:9", "3840x2160"]
           },
-          "resolution": {
-            "type": "string",
-            "enum": ["1k", "2k", "4k"]
-          },
+          "resolution": { "type": "string", "enum": ["1k", "2k", "4k"] },
           "output_format": {
             "type": "string",
             "examples": ["png", "jpeg", "webp"]
           },
-          "output_compression": {
-            "type": "integer"
-          },
+          "output_compression": { "type": "integer" },
           "background": {
             "type": "string",
             "examples": ["auto", "transparent", "opaque"]
           },
-          "moderation": {
-            "type": "string",
-            "examples": ["auto", "low"]
-          },
-          "wait_for_result": {
-            "type": "boolean"
-          },
-          "image_urls": {
-            "$ref": "#/components/schemas/ReferenceImages"
-          },
-          "user": {
-            "type": "string"
-          }
+          "moderation": { "type": "string", "examples": ["auto", "low"] },
+          "wait_for_result": { "type": "boolean" },
+          "image_urls": { "$ref": "#/components/schemas/ReferenceImages" },
+          "mask_url": { "type": "string" },
+          "response_format": { "type": "string", "examples": ["b64_json"] },
+          "user": { "type": "string" }
         },
         "required": ["prompt"]
       },
       "ImageEditRequest": {
         "type": "object",
         "properties": {
-          "model": {
-            "type": "string",
-            "default": "gpt-image-2"
-          },
-          "prompt": {
-            "type": "string"
-          },
-          "size": {
-            "type": "string"
-          },
-          "resolution": {
-            "type": "string"
-          },
-          "image": {
-            "type": "string",
-            "format": "binary"
-          },
+          "model": { "type": "string", "default": "gpt-image-2" },
+          "prompt": { "type": "string" },
+          "size": { "type": "string" },
+          "resolution": { "type": "string" },
+          "image": { "type": "string", "format": "binary" },
           "image[]": {
             "type": "array",
-            "items": {
-              "type": "string",
-              "format": "binary"
-            }
+            "items": { "type": "string", "format": "binary" },
+            "maxItems": 9
           },
-          "mask": {
-            "type": "string",
-            "format": "binary"
-          }
+          "mask": { "type": "string", "format": "binary" }
         },
         "required": ["prompt"]
       },
       "ReferenceImages": {
         "oneOf": [
-          {
-            "type": "string"
-          },
+          { "type": "string" },
           {
             "type": "array",
             "items": {
               "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "object",
-                  "additionalProperties": true
-                }
+                { "type": "string" },
+                { "type": "object", "additionalProperties": true }
               ]
             },
-            "maxItems": 4
+            "maxItems": 9
           },
-          {
-            "type": "object",
-            "additionalProperties": true
-          }
+          { "type": "object", "additionalProperties": true }
         ]
       },
       "ImageSubmitResponse": {
         "type": "object",
         "properties": {
-          "created": {
-            "type": "integer",
-            "example": 1777080000
-          },
-          "task_id": {
-            "type": "string",
-            "example": "img_xxx"
-          },
+          "created": { "type": "integer", "example": 1777080000 },
+          "task_id": { "type": "string", "example": "img_xxx" },
           "data": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ImageData"
-            },
+            "items": { "$ref": "#/components/schemas/ImageData" },
             "example": []
           }
         },
         "required": ["task_id", "data"]
       },
-      "ApimartSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 200
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "example": "submitted"
-                },
-                "task_id": {
-                  "type": "string",
-                  "example": "img_xxx"
-                }
-              }
-            }
-          }
-        }
-      },
       "ImageResponse": {
         "type": "object",
         "properties": {
-          "created": {
-            "type": "integer",
-            "example": 1777080000
-          },
-          "task_id": {
-            "type": "string",
-            "example": "img_xxx"
-          },
+          "created": { "type": "integer", "example": 1777080000 },
+          "task_id": { "type": "string", "example": "img_xxx" },
           "data": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ImageData"
-            }
+            "items": { "$ref": "#/components/schemas/ImageData" }
           }
         }
       },
@@ -513,109 +645,132 @@
             "type": "string",
             "example": "/p/img/img_xxx/0?exp=1777166400000&sig=..."
           },
-          "file_id": {
-            "type": "string",
-            "example": "file_xxx"
-          }
+          "file_id": { "type": "string", "example": "file_xxx" }
         }
       },
       "ImageTask": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "img_xxx"
-          },
-          "task_id": {
-            "type": "string",
-            "example": "img_xxx"
-          },
-          "object": {
-            "type": "string",
-            "example": "image.task"
-          },
+          "id": { "type": "string", "example": "img_xxx" },
+          "task_id": { "type": "string", "example": "img_xxx" },
+          "object": { "type": "string", "example": "image.task" },
           "status": {
             "type": "string",
             "enum": ["queued", "in_progress", "succeeded", "failed"]
           },
-          "progress": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 100
+          "progress": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "created_at": { "type": "integer" },
+          "completed_at": { "type": "integer" },
+          "result": { "$ref": "#/components/schemas/ImageResponse" },
+          "error": { "$ref": "#/components/schemas/ErrorObject" }
+        }
+      },
+      "VideoGenerationRequest": {
+        "type": "object",
+        "properties": {
+          "model": { "type": "string", "default": "grok-imagine-video" },
+          "prompt": { "type": "string", "maxLength": 2500 },
+          "seconds": {
+            "type": "string",
+            "enum": ["6", "10", "12", "16", "20"]
           },
-          "created_at": {
-            "type": "integer"
+          "size": {
+            "type": "string",
+            "enum": ["1280x720", "720x1280", "1024x1024"]
           },
-          "completed_at": {
-            "type": "integer"
+          "resolution_name": { "type": "string", "enum": ["480p", "720p"] },
+          "preset": {
+            "type": "string",
+            "enum": ["normal", "fun", "spicy", "custom"]
           },
-          "result": {
-            "$ref": "#/components/schemas/ImageResponse"
+          "input_reference": {
+            "type": "array",
+            "items": { "type": "string", "description": "data:image/...;base64,... Data URL" },
+            "maxItems": 7
           },
-          "error": {
-            "$ref": "#/components/schemas/ErrorObject"
+          "group": { "type": "string" }
+        },
+        "required": ["model", "prompt", "seconds", "size", "resolution_name", "preset"]
+      },
+      "VideoSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "example": "video_xxx" },
+              "task_id": { "type": "string", "example": "video_xxx" },
+              "status": {
+                "type": "string",
+                "enum": ["queued", "pending", "submitted"]
+              }
+            }
+          }
+        }
+      },
+      "VideoTask": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "task_id": { "type": "string" },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "pending",
+                  "submitted",
+                  "processing",
+                  "in_progress",
+                  "running",
+                  "completed",
+                  "success",
+                  "failed",
+                  "error",
+                  "cancelled"
+                ]
+              },
+              "progress": { "type": "integer", "minimum": 0, "maximum": 100 },
+              "created_at": { "type": "integer" },
+              "completed_at": { "type": "integer" },
+              "error": { "$ref": "#/components/schemas/ErrorObject" }
+            }
           }
         }
       },
       "LegacyImageTask": {
         "type": "object",
         "properties": {
-          "task_id": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "example": "success"
-          },
-          "conversation_id": {
-            "type": "string"
-          },
-          "created": {
-            "type": "integer"
-          },
-          "finished_at": {
-            "type": "integer"
-          },
-          "error": {
-            "type": "string"
-          },
-          "credit_cost": {
-            "type": "integer"
-          },
+          "task_id": { "type": "string" },
+          "status": { "type": "string", "example": "success" },
+          "conversation_id": { "type": "string" },
+          "created": { "type": "integer" },
+          "finished_at": { "type": "integer" },
+          "error": { "type": "string" },
+          "credit_cost": { "type": "integer" },
           "data": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ImageData"
-            }
+            "items": { "$ref": "#/components/schemas/ImageData" }
           }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "$ref": "#/components/schemas/ErrorObject"
-          }
+          "error": { "$ref": "#/components/schemas/ErrorObject" }
         }
       },
       "ErrorObject": {
         "type": "object",
         "properties": {
-          "message": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "example": "invalid_request_error"
-          },
+          "message": { "type": "string" },
+          "type": { "type": "string", "example": "invalid_request_error" },
           "code": {
             "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "integer"
-              }
+              { "type": "string" },
+              { "type": "integer" }
             ]
           }
         }

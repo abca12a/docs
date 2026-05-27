@@ -1,0 +1,181 @@
+---
+title: "Anthropic Messages"
+description: "用 Anthropic 原生协议调用 Claude 全系列。"
+openapi: "POST /messages"
+icon: "brain"
+---
+
+如果你已经在用 Anthropic 官方 SDK，或想使用 Claude 原生的 system prompt、Tool Use、Prompt Caching 等能力，建议直接调用 `/v1/messages`。它与 Anthropic 官方协议一致。
+
+## 请求地址
+
+```http
+POST https://dimilinks.com/v1/messages
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+anthropic-version: 2023-06-01
+```
+
+`anthropic-version` 头建议显式带上，与 Anthropic 官方文档保持一致；不带也可用，会按服务端默认版本解析。
+
+## 简单示例
+
+```bash
+curl "https://dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "system": "你是一位简洁的中文助手。",
+    "messages": [
+      {"role": "user", "content": "用一句话解释什么是冥王星。"}
+    ]
+  }'
+```
+
+返回（节选）：
+
+```json
+{
+  "id": "msg_xxx",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-6",
+  "content": [
+    { "type": "text", "text": "冥王星是太阳系外缘的一颗矮行星。" }
+  ],
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 32,
+    "output_tokens": 24
+  }
+}
+```
+
+## 流式输出
+
+加入 `"stream": true`，服务端会按 Anthropic 原生协议依次推回 `message_start` / `content_block_start` / `content_block_delta` / `content_block_stop` / `message_delta` / `message_stop` 事件。
+
+```bash
+curl "https://dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -N \
+  -d '{
+    "model": "claude-opus-4-7",
+    "max_tokens": 1024,
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "写一首关于雨夜的四行小诗"}
+    ]
+  }'
+```
+
+## 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | Claude 模型 ID，例如 `claude-opus-4-7`、`claude-sonnet-4-6`、`claude-haiku-4-5-20251001`，及对应 `-thinking` 变体。 |
+| `max_tokens` | integer | 是 | 单次输出 token 上限。 |
+| `messages` | array | 是 | 消息数组，`role` 支持 `user` / `assistant`，`content` 支持字符串或 `[{type:"text",...}]` 内容块。 |
+| `system` | string \| array | 否 | system prompt。可传字符串或 `[{type:"text",...}]` 数组。 |
+| `temperature` | number | 否 | 采样温度，0–1。 |
+| `top_p` | number | 否 | 核采样概率，0–1。 |
+| `top_k` | integer | 否 | top-k 采样。 |
+| `stop_sequences` | string[] | 否 | 命中即停止生成。 |
+| `stream` | boolean | 否 | `true` 走 SSE 流式输出。 |
+| `tools` | array | 否 | Anthropic 原生 Tool Use 定义。 |
+| `tool_choice` | object | 否 | 控制是否强制使用某个工具。 |
+| `metadata` | object | 否 | 终端用户标识等元数据。 |
+| `thinking` | object | 否 | 启用思考模式，例如 `{ "type": "enabled", "budget_tokens": 8192 }`，需配合 `*-thinking` 模型。 |
+
+## 用 Anthropic SDK 调用
+
+Python：
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-...",
+    base_url="https://dimilinks.com",
+)
+
+message = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "你好"}],
+)
+
+print(message.content[0].text)
+```
+
+Node.js：
+
+```ts
+import Anthropic from '@anthropic-ai/sdk'
+
+const client = new Anthropic({
+  apiKey: process.env.DIMILINKS_API_KEY,
+  baseURL: 'https://dimilinks.com',
+})
+
+const message = await client.messages.create({
+  model: 'claude-opus-4-7',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: '你好' }],
+})
+```
+
+<Note>
+  Anthropic SDK 的 `base_url` 指到根域名 `https://dimilinks.com` 即可；SDK 内部会自动拼接 `/v1/messages`。
+</Note>
+
+## Tool Use
+
+```bash
+curl "https://dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "查询某个城市的当前天气",
+        "input_schema": {
+          "type": "object",
+          "properties": { "city": {"type": "string"} },
+          "required": ["city"]
+        }
+      }
+    ],
+    "messages": [
+      {"role": "user", "content": "帮我查 Tokyo 现在的天气"}
+    ]
+  }'
+```
+
+模型回复中如果出现 `content[].type === "tool_use"`，请执行工具，然后用 `role=user` 的 `tool_result` 内容块继续对话。
+
+## 思考模式
+
+调用 `*-thinking` 模型时建议显式打开 `thinking`：
+
+```json
+{
+  "model": "claude-opus-4-7-thinking",
+  "max_tokens": 4096,
+  "thinking": { "type": "enabled", "budget_tokens": 8192 },
+  "messages": [
+    {"role": "user", "content": "请逐步推导 √2 是无理数"}
+  ]
+}
+```
+
+返回里会出现 `content[].type === "thinking"` 内容块；如果不需要展示给最终用户，可以在前端层过滤。

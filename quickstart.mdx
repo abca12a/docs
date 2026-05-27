@@ -1,110 +1,86 @@
 ---
 title: "快速开始"
-description: "从提交图片任务到获取结果的最小流程。"
+description: "5 分钟跑通一次 Claude 对话调用。"
 icon: "rocket"
 ---
 
-本页演示最推荐的异步调用方式。请在服务端保存 API Key，不要把完整密钥放进浏览器页面或移动端安装包。
+本页用一次 `chat/completions` 调用做最小演示。把示例里的模型名换成图片或视频模型，就能切换到对应的 API。
 
 ## 1. 准备 API Key
 
-把你的密钥保存为环境变量：
+在控制台创建一把 Bearer 密钥，保存为环境变量。所有请求都从服务端发起，不要把密钥放进浏览器或客户端安装包。
 
 ```bash
 export DIMILINKS_API_KEY="sk-..."
 ```
-
-所有 `/v1/*` 请求都需要 Bearer Token：
 
 ```http
 Authorization: Bearer <DIMILINKS_API_KEY>
 Content-Type: application/json
 ```
 
-## 2. 提交生成任务
+## 2. 调用 Claude 对话
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-image-2",
-    "prompt": "高端香水产品摄影，黑色背景，金色反光，商业广告质感",
-    "n": 1,
-    "size": "16:9",
-    "resolution": "2k",
-    "output_format": "png"
+    "model": "claude-sonnet-4-6",
+    "messages": [
+      {"role": "system", "content": "你是一个简洁的中文助手。"},
+      {"role": "user", "content": "用一句话解释什么是冥王星。"}
+    ]
   }'
 ```
 
-默认异步响应会返回任务 ID：
+返回（节选）：
 
 ```json
 {
-  "created": 1777080000,
-  "task_id": "img_xxx",
-  "data": []
-}
-```
-
-## 3. 轮询任务状态
-
-```bash
-curl "https://dimilinks.com/v1/tasks/img_xxx" \
-  -H "Authorization: Bearer $DIMILINKS_API_KEY"
-```
-
-任务完成后读取 `result.data[].url`：
-
-```json
-{
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "succeeded",
-  "progress": 100,
-  "result": {
-    "created": 1777080000,
-    "data": [
-      {
-        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
-        "file_id": "file_xxx"
-      }
-    ]
+  "id": "chatcmpl_xxx",
+  "object": "chat.completion",
+  "model": "claude-sonnet-4-6",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "冥王星是太阳系外缘的一颗矮行星，曾被列为第九大行星。"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32,
+    "completion_tokens": 24,
+    "total_tokens": 56
   }
 }
 ```
 
-## 4. 处理图片 URL
+把 `model` 换成 `gpt-5.5`、`gpt-5.4-mini`、`grok-4.20-fast` 等，就可以调用其他文本模型；密钥不变。
 
-返回值可能是相对路径、完整图片链接，也可能是 `data:image/...;base64,...` Data URL。
+## 3. 切换到流式输出
 
-网页展示时可以这样处理：
-
-```ts
-const DIMILINKS_ORIGIN = 'https://dimilinks.com'
-
-export function normalizeImageUrl(url: string) {
-  if (url.startsWith('data:image/')) return url
-  return new URL(url, DIMILINKS_ORIGIN).toString()
-}
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "写一首关于深海的四行小诗"}
+    ]
+  }'
 ```
 
-如果你在服务端脚本里拿到 Data URL，需要把逗号后的 base64 解码保存为文件：
+服务端会以 `text/event-stream` 推回一连串 `data: {...}` 增量事件，最后以 `data: [DONE]` 结束。详见 [Chat completions](/api-reference/chat/completions)。
 
-```python
-import base64
+## 4. 下一步
 
-data_url = result["result"]["data"][0]["url"]
-base64_data = data_url.split(",", 1)[1]
-
-with open("image.png", "wb") as f:
-    f.write(base64.b64decode(base64_data))
-```
-
-## 轮询建议
-
-- 每 2 到 3 秒查询一次任务状态。
-- 最长等待 8 到 10 分钟。
-- `succeeded` 后展示 `result.data[].url`。
-- `failed` 或 `404` 后停止轮询，并提示用户重试或调整输入。
+- 用 Anthropic 原生协议调用 Claude：[Anthropic Messages](/api-reference/chat/anthropic-messages)
+- 提交图片任务：[Create image generation](/api-reference/images/gpt-image-2/generation)
+- 提交视频任务：[Create video generation](/api-reference/videos/grok-imagine-video/generation)
+- 查询任务进度：[Retrieve image task](/api-reference/images/gpt-image-2/tasks)
