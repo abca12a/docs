@@ -7,7 +7,8 @@
   },
   "servers": [
     {
-      "url": "https://dimilinks.com/v1"
+      "url": "https://dimilinks.com/v1",
+      "description": "OpenAI 兼容入口：chat completions / images / videos / models / tasks"
     }
   ],
   "security": [
@@ -78,8 +79,14 @@
       "post": {
         "tags": ["Chat"],
         "summary": "Create Anthropic message",
-        "description": "Anthropic native messages endpoint for Claude models.",
+        "description": "Anthropic native messages endpoint for Claude models. Note: this route lives on a different host than the OpenAI-compatible endpoints.",
         "operationId": "createAnthropicMessage",
+        "servers": [
+          {
+            "url": "https://api-direct.dimilinks.com",
+            "description": "Anthropic 原生入口"
+          }
+        ],
         "parameters": [
           {
             "name": "anthropic-version",

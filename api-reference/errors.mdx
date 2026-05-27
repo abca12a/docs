@@ -4,9 +4,12 @@ description: "DimiLinks API 的错误响应格式和常见 HTTP 状态。"
 icon: "circle-exclamation"
 ---
 
-DimiLinks 默认使用 OpenAI 风格的 `error` 包装；调用 `/v1/messages` 时则使用 Anthropic 原生错误格式（`{"type":"error","error":{...}}`）。
+DimiLinks 的错误响应格式与上游协议保持一致：
 
-OpenAI 风格：
+- 调用 `https://dimilinks.com/v1/*`（OpenAI 兼容）的接口，错误使用 OpenAI 风格 `error` 包装。
+- 调用 `https://api-direct.dimilinks.com/v1/messages`（Anthropic 原生）的接口，错误使用 Anthropic 原生格式 `{"type":"error","error":{...}}`。
+
+OpenAI 风格（来自 `dimilinks.com/v1`）：
 
 ```json
 {
@@ -18,7 +21,7 @@ OpenAI 风格：
 }
 ```
 
-Anthropic 风格：
+Anthropic 风格（来自 `api-direct.dimilinks.com`）：
 
 ```json
 {
@@ -50,3 +53,4 @@ Anthropic 风格：
 - `429` 建议指数退避，并降低并发；不要立即高频重试。
 - `5xx` / `502` / `503` 可允许用户重试，但要记录日志便于排查上游。
 - 任务接口返回 `404` 时立即停止轮询，避免浪费请求。
+- 同一段业务代码如果同时调用两套域名，建议在 HTTP 客户端里统一抽象「读 `error.message` 或 `error.error.message`」，避免每个调用方各写一遍兼容逻辑。
