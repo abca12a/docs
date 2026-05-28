@@ -40,7 +40,7 @@ Anthropic 风格（来自 `api-direct.dimilinks.com`）：
 | `400` | `invalid_request_error` / `invalid_reference_image` | 参数错误、prompt 为空、参考图异常 | 提示用户修改参数 |
 | `401` | `missing_api_key` / `invalid_api_key` | 密钥缺失或错误 | 检查密钥配置 |
 | `402` | `insufficient_balance` | 余额不足 | 提示充值或联系管理员 |
-| `403` | `model_not_allowed` | 当前密钥没有该模型权限 | 检查模型白名单或更换密钥 |
+| `403` | `model_not_allowed` | 当前密钥没有该模型权限，或可用分组与模型 `enable_groups` 无交集 | 检查模型白名单、参考 [Model groups & pricing](/api-reference/groups-and-pricing) 调整 `group` 或更换密钥 |
 | `404` | `not_found` | 任务不存在或不属于当前用户 | 停止轮询 |
 | `429` | `rate_limit_rpm` / `rate_limit_tpm` | 限流 | 退避后重试，降低并发 |
 | `500` | `internal_error` / `billing_error` | 服务内部异常 | 记录日志并稍后重试 |

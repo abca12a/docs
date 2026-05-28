@@ -44,5 +44,6 @@ curl "https://dimilinks.com/v1/models" \
 ## 使用建议
 
 - 模型清单会随线上能力调整，请把 `/v1/models` 作为运行时来源，不要写死硬编码。
-- 如果返回 `403 model_not_allowed`，请检查这把密钥是否被授权调用该模型。
+- 不同模型属于不同分组，分组直接决定计费倍率，详见 [Model groups & pricing](/api-reference/groups-and-pricing)。
+- 如果返回 `403 model_not_allowed`，请检查这把密钥是否被授权调用该模型；多数情况是 API Key 可用分组与目标模型 `enable_groups` 没有交集。
 - 文本模型默认走 `/v1/chat/completions` 或 `/v1/messages`；图片走 `/v1/images/*`；视频走 `/v1/videos/*`。

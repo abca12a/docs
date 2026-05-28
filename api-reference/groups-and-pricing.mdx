@@ -1,0 +1,159 @@
+---
+title: "Model groups & pricing"
+description: "DimiLinks 模型按分组开放，分组直接决定计费倍率。"
+icon: "scale-balanced"
+---
+
+DimiLinks 上不同模型属于不同分组，分组直接决定最终费用。调用前的硬约束：
+
+- 同一个模型只在固定的若干分组里开放。例如 `claude-opus-4-7` 只在 `claude 特价` 分组里能调，不存在「default 分组也能跑 claude」。
+- 你的 API Key 自身有「可用分组」字段，必须与目标模型的可用分组有交集，调用才会通过。
+- 同一段提示词在不同模型 / 不同分组之间费用不能线性外推：我们按「官方价 × 模型倍率 × 分组倍率」结算，组合差异可能达到几十倍。
+
+> 不要硬编码倍率，分组与价格随时可能调整。请把 `GET /api/pricing` 的返回结果作为运行时事实源。
+
+## 权威接口
+
+```bash
+curl https://dimilinks.com/api/pricing
+```
+
+该接口无需登录即可访问，返回当前线上的全部分组、可用分组说明、模型清单和倍率：
+
+```json
+{
+  "success": true,
+  "pricing_version": "a42d372ccf0b5dd13ecf71203521f9d2",
+  "group_ratio": {
+    "default": 1,
+    "open ai 特价": 0.5,
+    "claude 特价": 0.12,
+    "grok": 0.5,
+    "gpt-image-2": 1
+  },
+  "usable_group": {
+    "default": "",
+    "open ai 特价": "open ai 自有号池",
+    "claude 特价": "claude 自有号池",
+    "grok": "grok 自有号池",
+    "gpt-image-2": ""
+  },
+  "auto_groups": ["claude 特价"],
+  "supported_endpoint": {
+    "openai":      { "path": "/v1/chat/completions",   "method": "POST" },
+    "anthropic":   { "path": "/v1/messages",           "method": "POST" },
+    "image_generation": { "path": "/v1/images/generations", "method": "POST" }
+  },
+  "data": [
+    {
+      "model_name": "gpt-5.2",
+      "enable_groups": ["default", "open ai 特价"],
+      "model_ratio": 0.875,
+      "completion_ratio": 8,
+      "cache_ratio": 0.071428571429,
+      "quota_type": 0,
+      "model_price": 0,
+      "supported_endpoint_types": ["openai"]
+    },
+    {
+      "model_name": "claude-opus-4-7",
+      "enable_groups": ["claude 特价"],
+      "model_ratio": 2.5,
+      "completion_ratio": 5,
+      "cache_ratio": null,
+      "quota_type": 0,
+      "model_price": 0,
+      "supported_endpoint_types": ["anthropic"]
+    },
+    {
+      "model_name": "gpt-image-2",
+      "enable_groups": ["gpt-image-2", "default"],
+      "model_ratio": 0,
+      "completion_ratio": 0,
+      "cache_ratio": null,
+      "quota_type": 1,
+      "model_price": 0.02,
+      "supported_endpoint_types": ["image_generation", "image_edits"]
+    }
+  ]
+}
+```
+
+## 字段含义
+
+| 字段 | 含义 |
+| --- | --- |
+| `group_ratio` | 当前所有分组的倍率字典，唯一权威来源 |
+| `usable_group` | 分组的对外说明文案，可用于文档 / UI 展示 |
+| `auto_groups` | 后端「自动分组」白名单；只有命中此处的分组才允许通过自动选择落到具体模型上 |
+| `data[].enable_groups` | 该模型支持的分组列表，调用必须命中其中之一 |
+| `data[].model_ratio` | 输入 token 倍率（相对官方基准） |
+| `data[].completion_ratio` | 输出 token 倍率（相对 `model_ratio` 的乘数） |
+| `data[].cache_ratio` | 缓存命中部分的倍率，`null` 表示该模型不区分缓存 |
+| `data[].quota_type` | `0` 按 token 计费，`1` 按次计费 |
+| `data[].model_price` | `quota_type=1` 时的单次价格 |
+| `pricing_version` | 计费快照版本；用于客户端缓存键，发生变化时需要重新拉取 |
+
+## 调用方如何选分组
+
+请求里有两种选分组的方式：
+
+1. **不传 `group`（推荐）**：后端取「API Key 可用分组 ∩ 模型 `enable_groups`」，再按 `auto_groups` 与内部优先级选一个。这是默认链路，对绝大多数调用方来说够用。
+2. **显式传 `group`**：在请求体里加 `"group": "claude 特价"` 等。前提是该分组同时存在于 API Key 可用分组与模型 `enable_groups` 中，否则会返回 `403 model_not_allowed`。
+
+```bash
+curl https://dimilinks.com/v1/chat/completions \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-opus-4-7",
+    "messages": [{"role": "user", "content": "你好"}],
+    "group": "claude 特价"
+  }'
+```
+
+只有当一把 API Key 同时具备多个目标分组、且业务上需要稳定走某一个时，才需要显式指定 `group`。
+
+## 计费公式
+
+按 token 计费的模型（`quota_type = 0`）：
+
+```text
+input_cost  = input_tokens         × model_ratio                    × group_ratio
+output_cost = output_tokens        × model_ratio × completion_ratio × group_ratio
+cached_cost = cached_input_tokens  × model_ratio × cache_ratio      × group_ratio   (cache_ratio 不为 null 时启用)
+total_cost  = input_cost + output_cost + cached_cost
+```
+
+按次计费的模型（`quota_type = 1`）：
+
+```text
+total_cost = model_price × group_ratio × n
+```
+
+`n` 为本次任务实际产出的图片 / 视频张数（图片接口里就是请求体中的 `n`）。
+
+## 估算示例
+
+**`claude-opus-4-7` 在 `claude 特价` 分组**，输入 1k token、输出 500 token：
+
+- `model_ratio = 2.5`，`completion_ratio = 5`，`group_ratio = 0.12`
+- `input  = 1000 × 2.5     × 0.12 = 300`
+- `output = 500  × 2.5 × 5 × 0.12 = 750`
+- `total ≈ 1050`（系统内部 quota，按账户 `quota_per_unit` 折算成显示货币）
+
+**`gpt-5.2` 在 `default` 与 `open ai 特价` 分组对比**：
+
+- `default`：`group_ratio = 1`，按 `model_ratio 0.875` × `completion_ratio 8` 全额结算。
+- `open ai 特价`：`group_ratio = 0.5`，最终费用是 `default` 分组的一半。
+
+**`gpt-image-2` 异步出 1 张图**：
+
+- `model_price = 0.02`，`group_ratio` 取 `gpt-image-2 = 1` 或 `default = 1`，单次费用 `0.02`。
+
+## 工程化建议
+
+- 启动时拉一次 `GET /api/pricing`，按模型建立 `model_name → { enable_groups, model_ratio, completion_ratio, cache_ratio, quota_type, model_price }` 的索引；用 `pricing_version` 做缓存键。
+- 在 UI 上展示某模型可用分组时，直接读 `data[].enable_groups` 与 `usable_group` 文案，不要自己维护一份硬编码映射。
+- 估算费用时务必同时考虑 `model_ratio`、`completion_ratio`、`cache_ratio`、`group_ratio` 四项，缺一项都会算偏。
+- 看到 `403 model_not_allowed`：先检查 API Key 可用分组是否覆盖了目标模型的 `enable_groups`；临时绕过的方式是把 `group` 显式指向当前 Key 实际拥有的那个分组。
