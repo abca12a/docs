@@ -1,0 +1,165 @@
+---
+title: "モデルグループと料金"
+description: "DimiLinks のモデルはグループ単位で提供され、グループが課金倍率を直接決定します。"
+icon: "scale-balanced"
+---
+
+DimiLinks のモデルはそれぞれ異なるグループに属し、グループが最終的な料金を直接決定します。呼び出し前に、次の制約を確認してください。
+
+- 同じモデルを利用できるグループは固定されています。たとえば `claude-opus-4-8` は Claude グループでのみ利用でき、「default グループでも Claude を実行できる」わけではありません。
+- API Key 自体に「利用可能グループ」フィールドがあります。このグループと対象モデルの利用可能グループに共通項がなければ、呼び出しは許可されません。
+- 同じプロンプトでも、モデルやグループが異なれば料金を線形に推定できません。「公式価格 × モデル倍率 × グループ倍率」で計算するため、組み合わせによって数十倍の差が生じる場合があります。
+
+> 倍率をハードコードしないでください。グループと料金は随時変更される可能性があります。`GET /api/pricing` のレスポンスを実行時の情報源として使用してください。
+
+## 正式な API
+
+```bash
+curl https://dimilinks.com/api/pricing
+```
+
+この API はログインせずに利用でき、現在オンラインで提供されているすべてのグループ、利用可能グループの説明、モデル一覧、倍率を返します。
+
+```json
+{
+  "success": true,
+  "pricing_version": "a42d372ccf0b5dd13ecf71203521f9d2",
+  "group_ratio": {
+    "default": 1,
+    "open ai 特价": 0.5,
+    "claude 特价": 0.3,
+    "claude-max": 0.8,
+    "gpt-image-2": 1
+  },
+  "usable_group": {
+    "default": "",
+    "open ai 特价": "open ai 自有号池",
+    "claude 特价": "claude 自有号池",
+    "claude-max": "claude 满血渠道",
+    "gpt-image-2": ""
+  },
+  "auto_groups": [],
+  "supported_endpoint": {
+    "openai":      { "path": "/v1/chat/completions",   "method": "POST" },
+    "anthropic":   { "path": "/v1/messages",           "method": "POST" },
+    "image_generation": { "path": "/v1/images/generations", "method": "POST" },
+    "image_edits": { "path": "/v1/images/edits", "method": "POST" }
+  },
+  "data": [
+    {
+      "model_name": "gpt-5.5",
+      "enable_groups": ["open ai 特价", "default"],
+      "model_ratio": 2.5,
+      "completion_ratio": 6,
+      "cache_ratio": 0.1,
+      "quota_type": 0,
+      "model_price": 0,
+      "supported_endpoint_types": ["openai"]
+    },
+    {
+      "model_name": "claude-opus-4-8",
+      "enable_groups": ["claude 特价", "claude-max"],
+      "model_ratio": 2.5,
+      "completion_ratio": 5,
+      "cache_ratio": 0.1,
+      "quota_type": 0,
+      "model_price": 0,
+      "supported_endpoint_types": ["anthropic", "openai"]
+    },
+    {
+      "model_name": "gpt-image-2",
+      "enable_groups": ["gpt-image-2", "default"],
+      "model_ratio": 0,
+      "completion_ratio": 0,
+      "cache_ratio": null,
+      "quota_type": 1,
+      "model_price": 0.08,
+      "resolution_options": [
+        { "resolution": "1k", "model_price": 0.08, "max_n": 1 },
+        { "resolution": "2k", "model_price": 0.15, "max_n": 4 },
+        { "resolution": "4k", "model_price": 0.30, "max_n": 4 }
+      ],
+      "supported_endpoint_types": ["image_generation", "image_edits"]
+    }
+  ]
+}
+```
+
+## フィールドの説明
+
+| フィールド | 説明 |
+| --- | --- |
+| `group_ratio` | 現在のすべてのグループ倍率を示す辞書。唯一の正式な情報源です |
+| `usable_group` | 外部向けのグループ説明。ドキュメントや UI に表示できます |
+| `auto_groups` | サーバー側の「自動グループ」許可リスト。ここに含まれるグループだけが、自動選択によって具体的なモデルへ割り当てられます |
+| `data[].enable_groups` | そのモデルを利用できるグループ一覧。呼び出しはいずれかに一致する必要があります |
+| `data[].model_ratio` | 入力 token の倍率（公式基準に対する倍率） |
+| `data[].completion_ratio` | 出力 token の倍率（`model_ratio` に対する乗数） |
+| `data[].cache_ratio` | キャッシュヒット部分の倍率。`null` はキャッシュを区別しないモデルを示します |
+| `data[].quota_type` | `0` は token 単位、`1` は回数単位の課金 |
+| `data[].model_price` | `quota_type=1` の場合の 1 回あたりの価格 |
+| `pricing_version` | 課金スナップショットのバージョン。クライアントのキャッシュキーとして使い、変更時に再取得します |
+
+## 呼び出し側でのグループ選択
+
+リクエストでは、次の 2 つの方法でグループを選択できます。
+
+1. **`group` を指定しない（推奨）**：サーバーは「API Key の利用可能グループ ∩ モデルの `enable_groups`」を求め、`auto_groups` と内部優先度に基づいて 1 つを選択します。これがデフォルトのフローであり、ほとんどの呼び出し元には十分です。
+2. **`group` を明示する**：リクエストボディに `"group": "claude 特价"` などを追加します。そのグループが API Key の利用可能グループとモデルの `enable_groups` の両方に含まれていない場合、`403 model_not_allowed` が返されます。
+
+```bash
+curl https://dimilinks.com/v1/chat/completions \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-opus-4-8",
+    "messages": [{"role": "user", "content": "こんにちは"}],
+    "group": "claude 特价"
+  }'
+```
+
+1 つの API Key が対象となる複数のグループを利用でき、ビジネス要件として特定のグループを安定して使う必要がある場合にのみ、`group` を明示してください。
+
+## 課金式
+
+token 単位のモデル（`quota_type = 0`）：
+
+```text
+input_cost  = input_tokens         × model_ratio                    × group_ratio
+output_cost = output_tokens        × model_ratio × completion_ratio × group_ratio
+cached_cost = cached_input_tokens  × model_ratio × cache_ratio      × group_ratio   (cache_ratio が null でない場合に有効)
+total_cost  = input_cost + output_cost + cached_cost
+```
+
+回数単位のモデル（`quota_type = 1`）：
+
+```text
+total_cost = model_price × group_ratio × n
+```
+
+`n` は、このタスクで実際に生成された画像 / 動画の数です。画像 API ではリクエストボディの `n` に相当します。
+
+## 見積もり例
+
+**`claude 特价` グループの `claude-opus-4-8`**で、入力 1k token、出力 500 token の場合：
+
+- `model_ratio = 2.5`、`completion_ratio = 5`、`group_ratio = 0.3`
+- `input  = 1000 × 2.5     × 0.3 = 750`
+- `output = 500  × 2.5 × 5 × 0.3 = 1875`
+- `total ≈ 2625`（システム内部 quota。アカウントの `quota_per_unit` で表示通貨に換算）
+
+**`default` と `open ai 特价` グループでの `gpt-5.5` の比較**：
+
+- `default`：`group_ratio = 1`。`model_ratio 2.5` × `completion_ratio 6` で全額を計算します。
+- `open ai 特价`：`group_ratio = 0.5`。最終料金は `default` グループの半額です。
+
+**`gpt-image-2` で 2K 画像を 1 枚、非同期生成する場合**：
+
+- 2K の `model_price = 0.15`、`group_ratio` は `gpt-image-2 = 1` または `default = 1` で、1 回の料金は `0.15` です。1K / 4K ではそれぞれ `resolution_options` を参照し、2K の価格を適用しないでください。
+
+## 実装上の推奨事項
+
+- 起動時に `GET /api/pricing` を取得し、モデルごとに `model_name → { enable_groups, model_ratio, completion_ratio, cache_ratio, quota_type, model_price }` のインデックスを作成してください。`pricing_version` をキャッシュキーに使用します。
+- UI にモデルの利用可能グループを表示する場合は、`data[].enable_groups` と `usable_group` の説明を直接使用し、独自のハードコードされたマッピングを管理しないでください。
+- 料金の見積もりでは、`model_ratio`、`completion_ratio`、`cache_ratio`、`group_ratio` の 4 項目を必ずすべて考慮してください。どれか 1 つでも欠けると結果が不正確になります。
+- `403 model_not_allowed` が表示された場合は、まず API Key の利用可能グループが対象モデルの `enable_groups` を含むか確認してください。一時的な回避策として、現在のキーが実際に持つグループを `group` に明示できます。

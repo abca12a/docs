@@ -13,98 +13,196 @@
     "dark": "/logo/dark.svg"
   },
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "指南",
-        "groups": [
-          {
-            "group": "开始使用",
-            "pages": [
-              "index",
-              "quickstart"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "基础",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication",
-              "api-reference/models",
-              "api-reference/groups-and-pricing",
-              "api-reference/errors"
-            ]
-          },
-          {
-            "group": "对话 / Chat",
-            "pages": [
-              "api-reference/chat/completions",
-              "api-reference/chat/anthropic-messages"
-            ]
-          },
-          {
-            "group": "图片 / gpt-image-2",
-            "pages": [
-              "api-reference/images/gpt-image-2/generation",
-              "api-reference/images/gpt-image-2/edits",
-              "api-reference/images/gpt-image-2/tasks",
-              "api-reference/images/gpt-image-2/sizes"
-            ]
-          },
-          {
-            "group": "视频 / grok-imagine-video",
-            "pages": [
-              "api-reference/videos/grok-imagine-video/generation",
-              "api-reference/videos/grok-imagine-video/tasks"
-            ]
-          },
-          {
-            "group": "IDE 与 CLI 接入",
-            "pages": [
-              "api-reference/integrations/ccswitch",
-              "api-reference/integrations/claude-code",
-              "api-reference/integrations/codex-cli",
-              "api-reference/integrations/vscode-and-ides"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "主页",
-          "href": "https://dimilinks.com",
-          "icon": "house"
+        "language": "cn",
+        "navbar": {
+          "links": [
+            { "label": "主页", "href": "https://dimilinks.com" },
+            { "label": "价格", "href": "https://dimilinks.com/pricing" }
+          ],
+          "primary": { "type": "button", "label": "打开控制台", "href": "https://dimilinks.com/console" }
         },
-        {
-          "anchor": "控制台",
-          "href": "https://dimilinks.com/console",
-          "icon": "gauge-high"
-        }
-      ]
-    }
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "主页",
-        "href": "https://dimilinks.com"
+        "tabs": [
+          {
+            "tab": "指南",
+            "groups": [
+              {
+                "group": "开始使用",
+                "pages": ["index", "quickstart"]
+              }
+            ]
+          },
+          {
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "基础",
+                "pages": [
+                  "api-reference/introduction",
+                  "api-reference/authentication",
+                  "api-reference/models",
+                  "api-reference/model-guide",
+                  "api-reference/groups-and-pricing",
+                  "api-reference/errors"
+                ]
+              },
+              {
+                "group": "对话 / Chat",
+                "pages": ["api-reference/chat/completions", "api-reference/chat/anthropic-messages"]
+              },
+              {
+                "group": "图片 / gpt-image-2",
+                "pages": [
+                  "api-reference/images/gpt-image-2/generation",
+                  "api-reference/images/gpt-image-2/edits",
+                  "api-reference/images/gpt-image-2/tasks",
+                  "api-reference/images/gpt-image-2/sizes"
+                ]
+              },
+              {
+                "group": "视频 / grok-imagine-video",
+                "pages": [
+                  "api-reference/videos/grok-imagine-video/generation",
+                  "api-reference/videos/grok-imagine-video/tasks"
+                ]
+              },
+              {
+                "group": "IDE 与 CLI 接入",
+                "pages": [
+                  "api-reference/integrations/ccswitch",
+                  "api-reference/integrations/claude-code",
+                  "api-reference/integrations/codex-cli",
+                  "api-reference/integrations/vscode-and-ides"
+                ]
+              }
+            ]
+          }
+        ]
       },
       {
-        "label": "价格",
-        "href": "https://dimilinks.com/pricing"
+        "language": "en",
+        "navbar": {
+          "links": [
+            { "label": "Home", "href": "https://dimilinks.com/en" },
+            { "label": "Pricing", "href": "https://dimilinks.com/en/pricing" }
+          ],
+          "primary": { "type": "button", "label": "Open console", "href": "https://dimilinks.com/console" }
+        },
+        "tabs": [
+          {
+            "tab": "Guides",
+            "groups": [{ "group": "Get started", "pages": ["en/index", "en/quickstart"] }]
+          },
+          {
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Basics",
+                "pages": [
+                  "en/api-reference/introduction",
+                  "en/api-reference/authentication",
+                  "en/api-reference/models",
+                  "en/api-reference/model-guide",
+                  "en/api-reference/groups-and-pricing",
+                  "en/api-reference/errors"
+                ]
+              },
+              {
+                "group": "Chat",
+                "pages": ["en/api-reference/chat/completions", "en/api-reference/chat/anthropic-messages"]
+              },
+              {
+                "group": "Images / gpt-image-2",
+                "pages": [
+                  "en/api-reference/images/gpt-image-2/generation",
+                  "en/api-reference/images/gpt-image-2/edits",
+                  "en/api-reference/images/gpt-image-2/tasks",
+                  "en/api-reference/images/gpt-image-2/sizes"
+                ]
+              },
+              {
+                "group": "Video / grok-imagine-video",
+                "pages": [
+                  "en/api-reference/videos/grok-imagine-video/generation",
+                  "en/api-reference/videos/grok-imagine-video/tasks"
+                ]
+              },
+              {
+                "group": "IDE and CLI integrations",
+                "pages": [
+                  "en/api-reference/integrations/ccswitch",
+                  "en/api-reference/integrations/claude-code",
+                  "en/api-reference/integrations/codex-cli",
+                  "en/api-reference/integrations/vscode-and-ides"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "jp",
+        "navbar": {
+          "links": [
+            { "label": "ホーム", "href": "https://dimilinks.com/ja" },
+            { "label": "料金", "href": "https://dimilinks.com/ja/pricing" }
+          ],
+          "primary": { "type": "button", "label": "コンソールを開く", "href": "https://dimilinks.com/console" }
+        },
+        "tabs": [
+          {
+            "tab": "ガイド",
+            "groups": [{ "group": "はじめに", "pages": ["jp/index", "jp/quickstart"] }]
+          },
+          {
+            "tab": "API リファレンス",
+            "groups": [
+              {
+                "group": "基本",
+                "pages": [
+                  "jp/api-reference/introduction",
+                  "jp/api-reference/authentication",
+                  "jp/api-reference/models",
+                  "jp/api-reference/model-guide",
+                  "jp/api-reference/groups-and-pricing",
+                  "jp/api-reference/errors"
+                ]
+              },
+              {
+                "group": "チャット",
+                "pages": ["jp/api-reference/chat/completions", "jp/api-reference/chat/anthropic-messages"]
+              },
+              {
+                "group": "画像 / gpt-image-2",
+                "pages": [
+                  "jp/api-reference/images/gpt-image-2/generation",
+                  "jp/api-reference/images/gpt-image-2/edits",
+                  "jp/api-reference/images/gpt-image-2/tasks",
+                  "jp/api-reference/images/gpt-image-2/sizes"
+                ]
+              },
+              {
+                "group": "動画 / grok-imagine-video",
+                "pages": [
+                  "jp/api-reference/videos/grok-imagine-video/generation",
+                  "jp/api-reference/videos/grok-imagine-video/tasks"
+                ]
+              },
+              {
+                "group": "IDE / CLI 連携",
+                "pages": [
+                  "jp/api-reference/integrations/ccswitch",
+                  "jp/api-reference/integrations/claude-code",
+                  "jp/api-reference/integrations/codex-cli",
+                  "jp/api-reference/integrations/vscode-and-ides"
+                ]
+              }
+            ]
+          }
+        ]
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "打开控制台",
-      "href": "https://dimilinks.com/console"
-    }
+    ]
   },
   "contextual": {
     "options": [
@@ -117,11 +215,6 @@
       "cursor",
       "vscode"
     ]
-  },
-  "seo": {
-    "metatags": {
-      "canonical": "https://docs.dimilinks.com"
-    }
   },
   "footer": {
     "socials": {}

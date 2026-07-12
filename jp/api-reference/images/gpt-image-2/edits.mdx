@@ -1,0 +1,73 @@
+---
+title: "画像編集を作成"
+description: "multipart/form-data で参照画像をアップロードし、編集結果を生成します。"
+openapi: "POST /images/edits"
+icon: "wand-magic-sparkles"
+---
+
+`/v1/images/edits` は `multipart/form-data` を受け取り、参照画像をファイルとしてアップロードします。参照画像がすでに URL または Data URL の場合は、[画像生成を作成](/jp/api-reference/images/gpt-image-2/generation)で `image_urls` を指定し、非同期フローを使用する方法がより安定しているため推奨します。
+
+## リクエスト URL
+
+```http
+POST https://dimilinks.com/v1/images/edits
+Content-Type: multipart/form-data
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+少なくとも 1 つの `image` ファイルをアップロードしてください。
+
+## 1 枚の画像を使用する例
+
+```bash
+curl "https://dimilinks.com/v1/images/edits" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -F "model=gpt-image-2" \
+  -F "prompt=主体を維持したまま、画像をレトロなフィルム写真風に変更する" \
+  -F "size=16:9" \
+  -F "resolution=2k" \
+  -F "image=@/path/to/reference.png"
+```
+
+## 複数の画像を使用する例
+
+参照画像は最大 9 枚までアップロードできます。
+
+```bash
+curl "https://dimilinks.com/v1/images/edits" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -F "model=gpt-image-2" \
+  -F "prompt=2 枚の参照画像のスタイルを融合し、EC サイトの商品メイン画像を生成する" \
+  -F "size=1:1" \
+  -F "resolution=4k" \
+  -F "image[]=@/path/to/ref-1.png" \
+  -F "image[]=@/path/to/ref-2.png"
+```
+
+## ファイルフィールド
+
+| フィールド | 説明 |
+| --- | --- |
+| `image` | 単一ファイル。推奨。 |
+| `image[]` | 複数ファイル。最大 9 個。 |
+| `images` | 複数ファイル用の互換フィールド。 |
+| `images[]` | 複数ファイル用の互換フィールド。 |
+| `image_1`、`image_2` | 番号付きフィールドとの互換用。 |
+| `mask` | 任意。現在は参照画像としてまとめて処理されます。 |
+
+## レスポンス
+
+成功すると、生成 API と同じ構造が返ります。
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```

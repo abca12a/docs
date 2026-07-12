@@ -20,11 +20,13 @@ curl "https://dimilinks.com/v1/models" \
 {
   "object": "list",
   "data": [
-    { "id": "claude-opus-4-7",       "object": "model", "created": 1777080000, "owned_by": "" },
-    { "id": "claude-sonnet-4-6",     "object": "model", "created": 1777080000, "owned_by": "" },
-    { "id": "claude-haiku-4-5-20251001", "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-opus-4-8",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-sonnet-5",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-haiku-4-5",      "object": "model", "created": 1777080000, "owned_by": "" },
     { "id": "gpt-5.5",               "object": "model", "created": 1777080000, "owned_by": "" },
-    { "id": "gpt-5.4-mini",          "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.6-terra",         "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "kimi-k2.7-code",        "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "qwen3.7-max",           "object": "model", "created": 1777080000, "owned_by": "" },
     { "id": "gpt-image-2",           "object": "model", "created": 1777080000, "owned_by": "" },
     { "id": "grok-imagine-video",    "object": "model", "created": 1777080000, "owned_by": "" }
   ]
@@ -35,15 +37,16 @@ curl "https://dimilinks.com/v1/models" \
 
 | 用途 | 推荐模型 |
 | --- | --- |
-| 通用对话、写作、长文档处理 | `claude-sonnet-4-6`、`claude-opus-4-7`、`gpt-5.5` |
-| 复杂推理 / 编码 | `claude-opus-4-7`、`gpt-5.3-codex`、`gpt-5.4` |
-| 低成本批量任务 | `claude-haiku-4-5-20251001`、`gpt-5.4-mini`、`deepseek-v4-flash` |
+| 通用对话、写作、长文档处理 | `claude-sonnet-5`、`claude-opus-4-8`、`gpt-5.5` |
+| 复杂推理 / 编码 | `claude-opus-4-8`、`kimi-k2.7-code`、`gpt-5.6-terra` |
+| 低成本批量任务 | `claude-haiku-4-5`、`gpt-5.4-mini`、`deepseek-v4-flash` |
 | 图片生成 / 编辑 | `gpt-image-2` |
 | 视频生成 | `grok-imagine-video` |
 
 ## 使用建议
 
 - 模型清单会随线上能力调整，请把 `/v1/models` 作为运行时来源，不要写死硬编码。
+- 查看近期型号和能力字段的选择方法，请继续阅读 [模型选择与更新](/api-reference/model-guide)。
 - 不同模型属于不同分组，分组直接决定计费倍率，详见 [Model groups & pricing](/api-reference/groups-and-pricing)。
 - 如果返回 `403 model_not_allowed`，请检查这把密钥是否被授权调用该模型；多数情况是 API Key 可用分组与目标模型 `enable_groups` 没有交集。
 - 文本模型默认走 `/v1/chat/completions` 或 `/v1/messages`；图片走 `/v1/images/*`；视频走 `/v1/videos/*`。

@@ -1,0 +1,47 @@
+---
+title: "模型选择与更新"
+description: "按线上可用性、协议和任务类型选择模型，并识别近期更新。"
+icon: "wand-magic-sparkles"
+---
+
+模型清单会随线路和账号池调整。开发时不要把本文的型号长期硬编码为唯一选择；先读取当前密钥可用模型，再根据任务选择。
+
+## 读取顺序
+
+1. 调用 [`GET /v1/models`](/api-reference/models)，确认当前 API Key 可以调用哪些模型。
+2. 读取 [`GET /api/pricing`](/api-reference/groups-and-pricing)，确认模型分组、计费倍率和能力字段。
+3. 根据 `supported_endpoint_types` 选择 OpenAI 兼容协议或 Anthropic 原生协议。
+4. 根据 `input_modalities`、`output_modalities` 和 `capabilities` 判断视觉、工具调用、推理与缓存能力。
+
+<Warning>
+  “厂商发布了某模型”不等于“DimiLinks 当前密钥可以调用该模型”。以 `/v1/models` 返回结果为最终依据。
+</Warning>
+
+## 2026-07-12 可用模型摘要
+
+以下型号来自 DimiLinks 线上价格目录，不代表固定不变的长期清单。
+
+| 任务方向 | 当前可选型号示例 |
+| --- | --- |
+| OpenAI 兼容通用对话 | `gpt-5.5`、`gpt-5.6-luna`、`gpt-5.6-sol`、`gpt-5.6-terra` |
+| Claude 对话与工具调用 | `claude-sonnet-5`、`claude-opus-4-8`、`claude-haiku-4-5` |
+| 编码任务 | `kimi-k2.7-code`，或从当前 GPT / Claude 模型中按实测选择 |
+| 中文与通用任务 | `qwen3.7-max`、`glm-5.2`、`MiniMax-M3`、`kimi-k2.6` |
+| 低成本批量任务 | `qwen3.6-flash`、`deepseek-v4-flash`、`claude-haiku-4-5` |
+| 图片生成与编辑 | `gpt-image-2` |
+| 视频生成 | `grok-imagine-video` 专用视频接口；实际套餐型号和价格以视频页面及价格目录为准 |
+
+## 本次更新重点
+
+- GPT 示例更新到 `gpt-5.5` 以及当前三个 GPT 5.6 变体。
+- Claude 推荐示例更新到 `claude-sonnet-5` 与 `claude-opus-4-8`。
+- 新增 `kimi-k2.7-code`、`qwen3.7-max`、`glm-5.2`、`MiniMax-M3` 等当前目录型号。
+- 不再推荐当前目录未返回的旧 Grok 文本型号和独立 `*-thinking` 型号。
+- `gpt-image-2` 已按分辨率计价，不能再用单一固定价格估算全部请求。
+
+## 生产环境建议
+
+- 启动或定时刷新模型清单，并为用户保存一个同协议的备用型号。
+- 缓存 `/api/pricing` 时使用 `pricing_version` 作为版本键；版本变化后重新计算展示价格。
+- 模型不可用或返回 `403 model_not_allowed` 时，重新读取模型与分组，不要静默改写到不同能力的模型。
+- 发布前对实际要用的模型跑一次最小请求；目录存在只证明配置可见，不代替端到端调用验证。

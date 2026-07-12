@@ -1,0 +1,57 @@
+---
+title: "Claude Code integration"
+description: "Call the DimiLinks Claude model family from Anthropic's official Claude Code CLI."
+icon: "robot"
+---
+
+[Claude Code](https://docs.claude.com/en/docs/claude-code) is Anthropic's official CLI and connects to Anthropic's own gateway by default. Two environment variables route it through DimiLinks.
+
+## One-click import (recommended)
+
+The fastest method is [CC Switch](https://github.com/farion1231/cc-switch):
+
+1. Install CC Switch and sign in.
+2. On the API Keys page in the DimiLinks console, click "Import to CC Switch" for a key restricted to Claude models.
+3. CC Switch automatically adds a provider named `Claude` with the base URL set to `https://api-direct.dimilinks.com/`.
+4. Before starting Claude Code, run `cc-switch use <provider>` to switch to DimiLinks.
+
+See [One-click import into CC Switch / Cherry Studio](/en/api-reference/integrations/ccswitch) for the deep-link structure.
+
+## Configure environment variables manually
+
+If you do not use CC Switch, set the environment variables directly:
+
+```bash
+export ANTHROPIC_BASE_URL="https://api-direct.dimilinks.com/"
+export ANTHROPIC_AUTH_TOKEN="sk-..."
+```
+
+Then start Claude Code:
+
+```bash
+claude
+```
+
+Add the variables to your shell configuration (`~/.zshrc` or `~/.bashrc`) to persist them. To maintain multiple configurations for different keys, use a tool such as [direnv](https://direnv.net/) or [mise](https://mise.jdx.dev/) to inject them by directory.
+
+<Note>
+  Claude Code does not read the OpenAI-compatible endpoint. You must use `https://api-direct.dimilinks.com/`, not `dimilinks.com/v1`.
+</Note>
+
+## Recommended models
+
+| Use case | Model ID |
+| --- | --- |
+| General coding / refactoring | `claude-sonnet-5` |
+| Deep reasoning / complex tasks | `claude-opus-4-8` |
+| Large-context long documents | `claude-opus-4-8` |
+| Low-cost batch calls | `claude-haiku-4-5` |
+
+Use the `/model` command after startup to switch models. Model IDs match the [List models](/en/api-reference/models) response.
+
+## Troubleshooting
+
+- **`401 Invalid token`:** The environment variable is not active or the key is incorrect. Run `echo $ANTHROPIC_AUTH_TOKEN` to check it.
+- **`403 model_not_allowed`:** The key's model restrictions do not allow the Claude model you selected. Update the key in the console.
+- **Requests keep timing out:** Start with the minimal `curl` example under [Authentication](/en/api-reference/authentication). If `curl` succeeds but Claude Code does not, a local proxy or corporate VPN is probably blocking the request.
+- **Keep an official Anthropic account available as well:** Maintain multiple providers in CC Switch and run `cc-switch use anthropic` before startup to switch back.

@@ -1,0 +1,46 @@
+---
+title: "API リファレンス"
+description: "DimiLinks 統一 API の基本情報とルーティング概要。"
+icon: "terminal"
+---
+
+## Base URL
+
+プロトコルに応じてドメインを選択してください。どちらも同じ Bearer キーを使用します。
+
+| プロトコル | Base URL | 主なルート |
+| --- | --- | --- |
+| OpenAI 互換 | `https://dimilinks.com/v1` | `/chat/completions`、`/models`、`/images/*`、`/videos/*`、`/tasks/{id}` |
+| Anthropic ネイティブ | `https://api-direct.dimilinks.com/` | `/v1/messages` |
+
+詳しくは [Authentication](/jp/api-reference/authentication) を参照してください。
+
+## ルート概要
+
+| メソッド | 完全な URL | 説明 |
+| --- | --- | --- |
+| `GET` | `https://dimilinks.com/v1/models` | 現在のキーで利用できるモデルを照会 |
+| `POST` | `https://dimilinks.com/v1/chat/completions` | OpenAI 互換の対話。GPT に加え、Claude などのテキストモデルも OpenAI プロトコルで呼び出せます |
+| `POST` | `https://api-direct.dimilinks.com/v1/messages` | Anthropic ネイティブプロトコル。Claude SDK / Claude Code に推奨 |
+| `POST` | `https://dimilinks.com/v1/images/generations` | テキストから画像を生成。JSON の参照画像拡張にも対応 |
+| `POST` | `https://dimilinks.com/v1/images/edits` | multipart による画像からの生成と編集 |
+| `POST` | `https://dimilinks.com/v1/videos/generations` | テキストまたは参照画像から動画を生成 |
+| `GET` | `https://dimilinks.com/v1/tasks/{task_id}` | 画像・動画共通のタスク照会 |
+| `GET` | `https://dimilinks.com/v1/videos/{task_id}/content` | 動画タスク結果への直接リンク（認証が必要） |
+| `GET` | `https://dimilinks.com/p/img/{task_id}/{idx}` | 画像の署名付きリンク（Bearer は不要。URL に署名を含む） |
+
+## プロトコル形式
+
+- テキスト対話：OpenAI / Anthropic 公式 SDK と互換性があり、base URL を変更するだけで利用できます。
+- 画像：レスポンスは OpenAI Images の形式に準拠し、`data[].url` は相対パス、HTTPS URL、Data URL のいずれかになります。
+- 動画：デフォルトで非同期処理です。送信後すぐに `task_id` が返され、`/v1/tasks/{task_id}` でポーリングします。
+
+## 推奨する非同期タスクフロー
+
+```text
+POST https://dimilinks.com/v1/images/generations?async=true   # 画像タスクを送信
+POST https://dimilinks.com/v1/videos/generations              # 動画タスクを送信（常に非同期）
+GET  https://dimilinks.com/v1/tasks/{task_id}                 # 共通タスク照会
+```
+
+画像と動画の生成時間は一定ではありません。非同期フローを使うことで、長時間接続、ゲートウェイのタイムアウト、ページを閉じたことによるタスク消失を回避できます。

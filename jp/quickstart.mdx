@@ -1,0 +1,110 @@
+---
+title: "クイックスタート"
+description: "5 分で Claude の対話リクエストを実行します。"
+icon: "rocket"
+---
+
+このページでは、`chat/completions` を 1 回呼び出す最小構成を示します。画像と動画は異なるエンドポイントを使用するため、対話リクエストを確認した後、ページ末尾のリンクから連携を進めてください。
+
+## 1. API Key を準備する
+
+コンソールで Bearer キーを作成し、環境変数に保存します。すべてのリクエストはサーバーから送信し、キーをブラウザやクライアントの配布パッケージに含めないでください。
+
+```bash
+export DIMILINKS_API_KEY="sk-..."
+```
+
+```http
+Authorization: Bearer <DIMILINKS_API_KEY>
+Content-Type: application/json
+```
+
+## 2. Claude の対話を呼び出す（OpenAI 互換エンドポイント）
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "messages": [
+      {"role": "system", "content": "あなたは簡潔に答える日本語アシスタントです。"},
+      {"role": "user", "content": "冥王星とは何か、一文で説明してください。"}
+    ]
+  }'
+```
+
+レスポンス（抜粋）：
+
+```json
+{
+  "id": "chatcmpl_xxx",
+  "object": "chat.completion",
+  "model": "claude-sonnet-5",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "冥王星は太陽系の外縁部にある準惑星で、かつては第9惑星に分類されていました。"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32,
+    "completion_tokens": 24,
+    "total_tokens": 56
+  }
+}
+```
+
+`model` を `gpt-5.5`、`gpt-5.6-terra`、`qwen3.7-max` などに変更すると、同じキーでほかのテキストモデルを呼び出せます。
+
+## 3. Anthropic ネイティブプロトコルを使う（Claude SDK / Claude Code に推奨）
+
+Anthropic 公式 SDK または Claude Code を使用する場合は、専用の base URL `https://api-direct.dimilinks.com/` を指定してください。
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 256,
+    "messages": [
+      {"role": "user", "content": "こんにちは"}
+    ]
+  }'
+```
+
+詳しくは [Anthropic Messages](/jp/api-reference/chat/anthropic-messages) を参照してください。
+
+## 4. ストリーミング出力に切り替える
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "深海をテーマにした四行詩を書いてください"}
+    ]
+  }'
+```
+
+サーバーは `text/event-stream` で一連の `data: {...}` 差分イベントを返し、最後に `data: [DONE]` で終了します。詳しくは [Chat completions](/jp/api-reference/chat/completions) を参照してください。
+
+## 5. 次のステップ
+
+- 現在利用できるモデルを確認し、最新モデルを選ぶ：[モデルの選択と更新](/jp/api-reference/model-guide)
+- Claude Code で Claude を利用する：[Claude Code](/jp/api-reference/integrations/claude-code)
+- Codex CLI で GPT を利用する：[Codex CLI](/jp/api-reference/integrations/codex-cli)
+- Cursor / Continue / Zed / Cherry Studio などの IDE を設定する：[VS Code とその他の IDE](/jp/api-reference/integrations/vscode-and-ides)
+- コンソールから CC Switch / Cherry Studio にワンクリックでインポートする：[CC Switch / Cherry Studio ワンクリックインポート](/jp/api-reference/integrations/ccswitch)
+- 画像タスクを送信する：[画像を生成](/jp/api-reference/images/gpt-image-2/generation)
+- 動画タスクを送信する：[動画を生成](/jp/api-reference/videos/grok-imagine-video/generation)
+- タスクの進行状況を照会する：[画像タスクを取得](/jp/api-reference/images/gpt-image-2/tasks)

@@ -1,0 +1,99 @@
+---
+title: "Create video generation"
+description: "Generate 6- to 20-second videos with grok-imagine-video from text or reference images."
+openapi: "POST /videos/generations"
+icon: "film"
+---
+
+`/v1/videos/generations` returns a `task_id` immediately after submission. Generation time depends on duration and resolution, and is generally one to five minutes. Poll [`/v1/tasks/{task_id}`](/en/api-reference/videos/grok-imagine-video/tasks) for status.
+
+<Note>
+  The video endpoint currently supports only the `grok-imagine-video` model. Inference and billing use the special pricing for the Grok route.
+</Note>
+
+## Request URL
+
+```http
+POST https://dimilinks.com/v1/videos/generations
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## Text-to-video example
+
+```bash
+curl "https://dimilinks.com/v1/videos/generations" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-video",
+    "prompt": "A group of neon jellyfish drifting slowly through the deep sea in cinematic light",
+    "seconds": "6",
+    "size": "1280x720",
+    "resolution_name": "720p",
+    "preset": "normal"
+  }'
+```
+
+Successful response:
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "queued"
+  }
+}
+```
+
+After receiving `task_id`, call [Retrieve video task](/en/api-reference/videos/grok-imagine-video/tasks).
+
+## Reference-image-to-video example
+
+Convert reference images to `data:image/...;base64,...` Data URLs first. Browser `blob:` URLs cannot be submitted directly; your server must read the binary data and encode it.
+
+```bash
+curl "https://dimilinks.com/v1/videos/generations" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-video",
+    "prompt": "Keep the person consistent while the camera makes one complete orbit around the subject",
+    "seconds": "10",
+    "size": "1280x720",
+    "resolution_name": "720p",
+    "preset": "normal",
+    "input_reference": [
+      "data:image/png;base64,iVBORw0KGgo..."
+    ]
+  }'
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `model` | string | Yes | Currently fixed to `grok-imagine-video`. |
+| `prompt` | string | Yes | Video description, up to 2,500 characters. |
+| `seconds` | string | Yes | Duration in seconds: `"6"` / `"10"` / `"12"` / `"16"` / `"20"`. |
+| `size` | string | Yes | Frame size: `1280x720` (16:9), `720x1280` (9:16), or `1024x1024` (1:1). |
+| `resolution_name` | string | Yes | Resolution tier: `720p` (HD) or `480p` (SD). |
+| `preset` | string | Yes | Style preset: `normal` (standard), `fun` (high playfulness), `spicy` (high intensity), or `custom` (custom prompt). |
+| `input_reference` | string[] | No | Array of up to seven reference-image Data URLs. When provided, enables reference-image-to-video mode. |
+| `group` | string | No | Route group. Console requests include `default`; third-party callers generally leave it empty. |
+
+## Duration and resolution combinations
+
+- Use `720p` for final output. `480p` generates faster and is suitable for previews.
+- Longer durations increase generation time and price. Start with `seconds: "6"` to validate the workflow.
+- When changing the same prompt to `9:16` or `1:1`, describe where the subject should appear in the frame to avoid cropping.
+
+## Error handling
+
+The video endpoint also uses the OpenAI-style `error` wrapper. See [Errors](/en/api-reference/errors) for common errors. If a `400` response reports a reference-image problem, verify that:
+
+- The reference image is PNG, JPEG, or WebP.
+- It uses a Data URL, not a `blob:` URL or regular HTTP URL.
+- Each reference image is smaller than 10 MB.
+- The request includes no more than seven reference images.

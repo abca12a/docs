@@ -1,0 +1,107 @@
+---
+title: "VS Code とその他の IDE"
+description: "Cursor、Continue、Roo Cline、Zed、JetBrains AI Assistant などのクライアントから DimiLinks に接続します。"
+icon: "code"
+---
+
+ほとんどの AI コーディングクライアントでは、base URL と API key をカスタマイズできます。以下に主要なツールの最小構成を示します。対応する表の 2 つの値をコピーするだけで設定できます。
+
+## 共通ルール
+
+| プロトコルファミリー | base URL | 適した用途 |
+| --- | --- | --- |
+| OpenAI 互換 | `https://dimilinks.com/v1` | GPT / その他の互換モデル / Claude も呼び出し可能（OpenAI プロトコル） |
+| Anthropic ネイティブ | `https://api-direct.dimilinks.com/` | Claude SDK / Claude Code 形式 |
+
+API key には、DimiLinks コンソールで作成した Bearer キーを使用します。
+
+## VS Code · Continue
+
+[Continue](https://continue.dev/) では、`~/.continue/config.json` の `models` フィールドを OpenAI 互換エンドポイントに直接接続できます。
+
+```json
+{
+  "models": [
+    {
+      "title": "DimiLinks GPT-5.5",
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "apiBase": "https://dimilinks.com/v1",
+      "apiKey": "sk-..."
+    },
+    {
+      "title": "DimiLinks Claude Sonnet 5",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "apiBase": "https://api-direct.dimilinks.com/",
+      "apiKey": "sk-..."
+    }
+  ]
+}
+```
+
+`provider: "anthropic"` を指定すると、Continue は Anthropic ネイティブプロトコルを使用します。`api-direct` ドメインと組み合わせてください。
+
+## VS Code · Roo Cline / Cline
+
+カスタム provider を新規作成します。
+
+| フィールド | 値 |
+| --- | --- |
+| Provider | `OpenAI Compatible` |
+| Base URL | `https://dimilinks.com/v1` |
+| API Key | DimiLinks Bearer |
+| Model ID | 例：`claude-sonnet-5`、`gpt-5.5` |
+
+Anthropic ネイティブプロトコルを使用する場合は、Provider に `Anthropic` を選択し、Base URL を `https://api-direct.dimilinks.com/` に変更してください。その他の設定は同じです。
+
+## Cursor
+
+Cursor → Settings → Models → "OpenAI API Key"：
+
+- API Base URL：`https://dimilinks.com/v1`
+- API Key：DimiLinks Bearer
+- 続いて "Override OpenAI Models" に、使用するモデル ID（例：`gpt-5.5`、`claude-sonnet-5`）を追加します。
+
+現在、Cursor が対応する OpenAI 互換 base URL は 1 つだけです。Anthropic ネイティブプロトコルを使用する場合は、Continue または Cherry Studio の利用を推奨します。
+
+## Zed
+
+`~/.config/zed/settings.json` に次のように設定します。
+
+```json
+{
+  "language_models": {
+    "openai": {
+      "api_url": "https://dimilinks.com/v1",
+      "available_models": [
+        { "name": "claude-sonnet-5", "max_tokens": 200000 },
+        { "name": "gpt-5.5", "max_tokens": 128000 }
+      ]
+    }
+  }
+}
+```
+
+API key は Zed の設定画面で入力します（または `OPENAI_API_KEY` 環境変数に設定します）。
+
+## JetBrains AI Assistant / Junie
+
+現在、JetBrains 製品は公式ゲートウェイに依存しており、base URL の設定を直接公開していません。[Cherry Studio](/jp/api-reference/integrations/ccswitch) または Continue を IDE に組み込み、JetBrains 独自のゲートウェイを介さず DimiLinks を利用する方法を推奨します。
+
+## Open WebUI / LobeChat / NextChat など
+
+この種のセルフホスト型フロントエンドには通常、「OpenAI 互換」provider があります。次のように設定します。
+
+- API URL：`https://dimilinks.com/v1`
+- API Key：DimiLinks Bearer
+- Model：例：`claude-sonnet-5`、`gpt-5.5`、`qwen3.7-max`
+
+Claude 専用のエンドポイントとして使用する場合は、「Anthropic」provider を選択し、`https://api-direct.dimilinks.com/` を指定してください。
+
+## よくある問題
+
+- **`https://dimilinks.com/` を指定して `/v1` が抜けている**：OpenAI 互換クライアントでは `404` になります。`/v1` を追加してください。
+- **Claude モデルを OpenAI プロトコルで使用する**：使用できますが、一部の高度な機能（Tool Use、思考モード）は Anthropic ネイティブプロトコルでのみ有効です。これらの機能が必要な場合は、Anthropic provider に切り替えてください。
+- **HTTPS 証明書エラー**：システムレベルで標準 CA 証明書を信頼してください。DimiLinks に追加のプライベート証明書は必要ありません。
+- **大きなファイルのコンテキスト / 視覚入力**：対応状況はモデルによって異なります。まず[モデル一覧](/jp/api-reference/models)で `input_modalities`、`output_modalities` を確認してください。

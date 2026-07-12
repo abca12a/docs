@@ -1,0 +1,71 @@
+---
+title: "DimiLinks API ドキュメント"
+description: "開発者向け：Claude / GPT によるテキスト対話、gpt-image-2 による画像生成、grok-imagine-video による動画生成。"
+icon: "sparkles"
+---
+
+DimiLinks は、OpenAI および Anthropic と同じ感覚で利用できる統一 API を提供します。1 つの Bearer キーで Claude、GPT などのテキストモデルを呼び出し、`gpt-image-2` の画像タスクや `grok-imagine-video` の動画タスクを送信できます。
+
+<Note>
+  画像と動画の生成には非同期フローを推奨します。タスクを送信した後、タスク API で結果をポーリングしてください。
+</Note>
+
+<Columns cols={2}>
+  <Card title="クイックスタート" icon="rocket" href="/jp/quickstart">
+    短い curl の例で認証と最初の対話リクエストを確認します。
+  </Card>
+  <Card title="対話 / Chat completions" icon="message" href="/jp/api-reference/chat/completions">
+    OpenAI 形式のプロトコルで GPT、Claude などのテキストモデルを呼び出します。
+  </Card>
+  <Card title="Anthropic Messages" icon="brain" href="/jp/api-reference/chat/anthropic-messages">
+    Anthropic ネイティブプロトコルのエンドポイントから、Claude の全モデルを呼び出します。
+  </Card>
+  <Card title="テキストから画像 / gpt-image-2" icon="image" href="/jp/api-reference/images/gpt-image-2/generation">
+    1K / 2K / 4K の画像生成、編集、非同期タスク照会に対応します。
+  </Card>
+  <Card title="テキストから動画 / grok-imagine-video" icon="film" href="/jp/api-reference/videos/grok-imagine-video/generation">
+    6～20 秒の短い動画を、テキストまたは参照画像から生成できます。
+  </Card>
+  <Card title="IDE / CLI 連携" icon="laptop-code" href="/jp/api-reference/integrations/ccswitch">
+    Claude Code、Codex CLI、Cursor、Continue、Cherry Studio などに対応します。
+  </Card>
+</Columns>
+
+## Base URL
+
+DimiLinks は、プロトコルごとに 2 つのドメインを提供します。
+
+| プロトコル | Base URL | 対応する SDK / クライアント |
+| --- | --- | --- |
+| OpenAI 互換 | `https://dimilinks.com/v1` | OpenAI SDK、Codex CLI、Cursor、Continue の OpenAI provider |
+| Anthropic ネイティブ | `https://api-direct.dimilinks.com/` | Anthropic SDK、Claude Code、Cherry Studio の Anthropic provider |
+
+`/v1/chat/completions`、`/v1/images/*`、`/v1/videos/*`、`/v1/models` などの OpenAI 形式 API には `dimilinks.com` を使用します。`/v1/messages` などの Anthropic ネイティブ API には `api-direct.dimilinks.com` を使用します。どちらのドメインでも同じ Bearer キーを利用できます。
+
+## 推奨フロー
+
+```text
+POST https://dimilinks.com/v1/chat/completions          # 対話（OpenAI 互換、プログラミング用途に推奨）
+POST https://api-direct.dimilinks.com/v1/messages       # 対話（Anthropic ネイティブプロトコル）
+POST https://dimilinks.com/v1/images/generations?async=true  # 画像：非同期送信
+POST https://dimilinks.com/v1/videos/generations             # 動画：非同期送信（デフォルトで非同期）
+GET  https://dimilinks.com/v1/tasks/{task_id}                # 画像 / 動画タスク共通の照会
+```
+
+## よく使うページ
+
+| 機能 | ページ |
+| --- | --- |
+| 認証方法 | [認証](/jp/api-reference/authentication) |
+| モデルの照会 | [モデル一覧](/jp/api-reference/models) |
+| 最新モデルの選択 | [モデルの選択と更新](/jp/api-reference/model-guide) |
+| テキスト対話（OpenAI 互換） | [Chat completions](/jp/api-reference/chat/completions) |
+| テキスト対話（Anthropic ネイティブ） | [Anthropic Messages](/jp/api-reference/chat/anthropic-messages) |
+| 画像生成 | [画像を生成](/jp/api-reference/images/gpt-image-2/generation) |
+| 画像編集 | [画像を編集](/jp/api-reference/images/gpt-image-2/edits) |
+| 動画生成 | [動画を生成](/jp/api-reference/videos/grok-imagine-video/generation) |
+| タスク照会 | [画像タスクを取得](/jp/api-reference/images/gpt-image-2/tasks) |
+| Claude Code 連携 | [Claude Code](/jp/api-reference/integrations/claude-code) |
+| Codex / Cursor / IDE 連携 | [Codex CLI](/jp/api-reference/integrations/codex-cli) · [VS Code とその他の IDE](/jp/api-reference/integrations/vscode-and-ides) |
+| ローカルクライアントへのワンクリックインポート | [CC Switch / Cherry Studio](/jp/api-reference/integrations/ccswitch) |
+| エラー形式 | [エラー](/jp/api-reference/errors) |

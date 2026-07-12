@@ -1,0 +1,47 @@
+---
+title: "Model selection and updates"
+description: "Choose models by production availability, protocol, and task type, and identify recent updates."
+icon: "wand-magic-sparkles"
+---
+
+The model catalog changes as routes and account pools evolve. Do not hardcode the models listed here as the only long-term choices. First retrieve the models available to the current key, then select one for the task.
+
+## Evaluation order
+
+1. Call [`GET /v1/models`](/en/api-reference/models) to confirm which models the current API key can call.
+2. Read [`GET /api/pricing`](/en/api-reference/groups-and-pricing) to inspect model groups, billing multipliers, and capability fields.
+3. Use `supported_endpoint_types` to choose the OpenAI-compatible or native Anthropic protocol.
+4. Use `input_modalities`, `output_modalities`, and `capabilities` to evaluate vision, tool-calling, reasoning, and caching support.
+
+<Warning>
+  A vendor announcing a model does not mean the current DimiLinks key can call it. Treat the `/v1/models` response as the final authority.
+</Warning>
+
+## Available model summary as of 2026-07-12
+
+The following model IDs come from the live DimiLinks pricing catalog and are not a permanent, fixed list.
+
+| Task category | Examples currently available |
+| --- | --- |
+| General chat through the OpenAI-compatible endpoint | `gpt-5.5`, `gpt-5.6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra` |
+| Claude chat and tool use | `claude-sonnet-5`, `claude-opus-4-8`, `claude-haiku-4-5` |
+| Coding tasks | `kimi-k2.7-code`, or a currently available GPT / Claude model selected through testing |
+| Chinese-language and general tasks | `qwen3.7-max`, `glm-5.2`, `MiniMax-M3`, `kimi-k2.6` |
+| Low-cost batch tasks | `qwen3.6-flash`, `deepseek-v4-flash`, `claude-haiku-4-5` |
+| Image generation and editing | `gpt-image-2` |
+| Video generation | The dedicated `grok-imagine-video` video endpoint; consult the video pages and pricing catalog for current plan variants and prices |
+
+## Highlights of this update
+
+- GPT examples now use `gpt-5.5` and the three current GPT 5.6 variants.
+- Recommended Claude examples now use `claude-sonnet-5` and `claude-opus-4-8`.
+- Current catalog models including `kimi-k2.7-code`, `qwen3.7-max`, `glm-5.2`, and `MiniMax-M3` have been added.
+- Legacy Grok text models and standalone `*-thinking` variants absent from the current catalog are no longer recommended.
+- `gpt-image-2` is priced by resolution, so you cannot estimate every request with one fixed price.
+
+## Production recommendations
+
+- Refresh the model catalog at startup or on a schedule, and save a fallback model that uses the same protocol for each user.
+- When caching `/api/pricing`, use `pricing_version` as the version key. Recalculate displayed prices whenever it changes.
+- When a model is unavailable or returns `403 model_not_allowed`, retrieve the models and groups again. Do not silently redirect to a model with different capabilities.
+- Before release, run a minimal request against every model your product will actually use. Presence in the catalog proves only that the configuration is visible; it does not replace an end-to-end call.

@@ -1,0 +1,88 @@
+---
+title: "動画タスクを取得"
+description: "動画生成タスクのステータスと結果のリンクを照会します。"
+openapi: "GET /tasks/{task_id}"
+icon: "bars-progress"
+---
+
+動画タスクと画像タスクは、同じ `/v1/tasks/{task_id}` を使用します。`/v1/videos/generations` を送信して `task_id` を取得した後、この API でポーリングします。
+
+## リクエスト
+
+```bash
+curl "https://dimilinks.com/v1/tasks/video_xxx" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## 処理中のレスポンス
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "processing",
+    "progress": 35,
+    "created_at": 1777080000
+  }
+}
+```
+
+## 成功時のレスポンス
+
+タスクが `completed` になると、`/v1/videos/{task_id}/content` から生成された動画を取得できます（Bearer 認証が必要です）。
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "completed",
+    "progress": 100,
+    "created_at": 1777080000,
+    "completed_at": 1777080300
+  }
+}
+```
+
+```bash
+curl -L "https://dimilinks.com/v1/videos/video_xxx/content" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -o video.mp4
+```
+
+製品内でエンドユーザーに動画を表示する場合は、サーバー側でこのダウンロードをプロキシすることを推奨します。まずキーを使って動画を取得し、その後に独自の認証を通して配信することで、DimiLinks のキーがブラウザに露出するのを防げます。
+
+## 失敗時のレスポンス
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "failed",
+    "progress": 100,
+    "created_at": 1777080000,
+    "completed_at": 1777080300,
+    "error": {
+      "code": "upstream_error",
+      "message": "動画の生成に失敗しました。しばらくしてからもう一度お試しください。"
+    }
+  }
+}
+```
+
+## ステータス
+
+| ステータス | 意味 | 呼び出し元での推奨対応 |
+| --- | --- | --- |
+| `queued`、`pending`、`submitted` | 処理待ち | ポーリングを続けます |
+| `processing`、`in_progress`、`running` | 生成中 | ポーリングを続けます |
+| `completed`、`success` | 完了 | `/v1/videos/{task_id}/content` を取得します |
+| `failed`、`error`、`cancelled` | 失敗 | エラーを表示し、ユーザーが再試行できるようにします |
+
+## ポーリングに関する推奨事項
+
+- 3〜5 秒ごとに照会してください。画像タスクより少し長めの間隔です。
+- 1 タスクあたりのポーリングは最長 10 分を推奨します。タイムアウトした場合は、ユーザーに失敗を伝え、再試行できるようにしてください。
+- `404` が発生したらすぐにポーリングを停止してください。タスク ID が誤っているか、現在のキーに属していない可能性が高いです。

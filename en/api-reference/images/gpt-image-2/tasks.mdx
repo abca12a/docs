@@ -1,0 +1,108 @@
+---
+title: "Retrieve image task"
+description: "Retrieve the status and result of an image generation task."
+openapi: "GET /tasks/{task_id}"
+icon: "bars-progress"
+---
+
+After submitting an asynchronous image task, use its `task_id` to retrieve the status. New integrations should prefer `/v1/tasks/{task_id}`.
+
+## Request
+
+```bash
+curl "https://dimilinks.com/v1/tasks/img_xxx" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## In-progress response
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "in_progress",
+  "progress": 50,
+  "created_at": 1777080000
+}
+```
+
+## Successful response
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "succeeded",
+  "progress": 100,
+  "created_at": 1777080000,
+  "completed_at": 1777080060,
+  "result": {
+    "created": 1777080000,
+    "data": [
+      {
+        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+        "file_id": "file_xxx"
+      }
+    ]
+  }
+}
+```
+
+## Image URL formats
+
+After the task succeeds, read `result.data[].url`. It may be a relative path, a complete HTTP(S) URL, or a `data:image/...;base64,...` Data URL.
+
+A Data URL is neither an error nor log output; it is the image itself. A webpage can display it directly, while a script must decode the base64 before saving it as a file.
+
+## Failed response
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "failed",
+  "progress": 100,
+  "created_at": 1777080000,
+  "completed_at": 1777080060,
+  "error": {
+    "code": "upstream_error",
+    "message": "The upstream provider returned an error"
+  }
+}
+```
+
+## Status values
+
+| Status | Meaning | Recommended caller action |
+| --- | --- | --- |
+| `queued` | Waiting to be processed | Continue polling. |
+| `in_progress` | Generating | Continue polling. |
+| `succeeded` | Completed | Display `result.data[].url`. |
+| `failed` | Failed | Display the error and allow the user to retry. |
+
+## Legacy route
+
+`GET /v1/images/tasks/{task_id}` remains available for legacy clients. New integrations should not mix the two response structures.
+
+Example response from the legacy route:
+
+```json
+{
+  "task_id": "img_xxx",
+  "status": "success",
+  "conversation_id": "conv_xxx",
+  "created": 1777080000,
+  "finished_at": 1777080060,
+  "error": "",
+  "credit_cost": 123,
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```

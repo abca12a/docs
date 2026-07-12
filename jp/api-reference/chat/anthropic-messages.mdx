@@ -1,0 +1,167 @@
+---
+title: "Anthropic Messages"
+description: "Anthropic ネイティブプロトコルで、利用可能なすべての Claude モデルを呼び出します。"
+openapi: "POST /messages"
+icon: "brain"
+---
+
+すでに Anthropic 公式 SDK を使用している場合や、Claude ネイティブの system prompt、Tool Use、Prompt Caching などの機能を利用したい場合は、`/v1/messages` を直接呼び出すことを推奨します。Anthropic 公式プロトコルと同じ仕様です。
+
+<Note>
+  Anthropic ネイティブプロトコルでは専用ドメイン `api-direct.dimilinks.com` を使用します。OpenAI 互換エンドポイントの `dimilinks.com/v1` とは base URL が異なりますが、同じキーを共用できます。
+</Note>
+
+## リクエスト URL
+
+```http
+POST https://api-direct.dimilinks.com/v1/messages
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+anthropic-version: 2023-06-01
+```
+
+`anthropic-version` ヘッダーは、Anthropic 公式ドキュメントと同様に明示的に指定することを推奨します。省略しても利用できますが、その場合はサーバーのデフォルトバージョンで解析されます。
+
+## 基本的な例
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "system": "あなたは簡潔に答える日本語アシスタントです。",
+    "messages": [
+      {"role": "user", "content": "冥王星とは何か、一文で説明してください。"}
+    ]
+  }'
+```
+
+レスポンス（抜粋）：
+
+```json
+{
+  "id": "msg_xxx",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-5",
+  "content": [
+    { "type": "text", "text": "冥王星は太陽系外縁部にある準惑星です。" }
+  ],
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 32,
+    "output_tokens": 24
+  }
+}
+```
+
+## ストリーミング出力
+
+`"stream": true` を追加すると、サーバーは Anthropic ネイティブプロトコルに従って `message_start` / `content_block_start` / `content_block_delta` / `content_block_stop` / `message_delta` / `message_stop` イベントを順番に返します。
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -N \
+  -d '{
+    "model": "claude-opus-4-8",
+    "max_tokens": 1024,
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "雨の夜をテーマにした四行の短い詩を書いてください"}
+    ]
+  }'
+```
+
+## パラメータ
+
+| パラメータ | 型 | 必須 | 説明 |
+| --- | --- | --- | --- |
+| `model` | string | はい | Claude モデル ID。例：`claude-opus-4-8`、`claude-sonnet-5`、`claude-haiku-4-5`。 |
+| `max_tokens` | integer | はい | 1 回の出力で生成する token 数の上限。 |
+| `messages` | array | はい | メッセージ配列。`role` は `user` / `assistant` に対応し、`content` には文字列または `[{type:"text",...}]` 形式のコンテンツブロックを指定できます。 |
+| `system` | string \| array | いいえ | system prompt。文字列または `[{type:"text",...}]` 配列を指定できます。 |
+| `temperature` | number | いいえ | サンプリング温度。0〜1。 |
+| `top_p` | number | いいえ | nucleus sampling の確率。0〜1。 |
+| `top_k` | integer | いいえ | top-k sampling。 |
+| `stop_sequences` | string[] | いいえ | 指定した文字列に一致すると生成を停止します。 |
+| `stream` | boolean | いいえ | `true` の場合、SSE ストリーミング出力を使用します。 |
+| `tools` | array | いいえ | Anthropic ネイティブの Tool Use 定義。 |
+| `tool_choice` | object | いいえ | 特定のツールを強制的に使用するかどうかを制御します。 |
+| `metadata` | object | いいえ | エンドユーザー識別子などのメタデータ。 |
+
+## Anthropic SDK での呼び出し
+
+Python：
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-...",
+    base_url="https://api-direct.dimilinks.com/",
+)
+
+message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "こんにちは"}],
+)
+
+print(message.content[0].text)
+```
+
+Node.js：
+
+```ts
+import Anthropic from '@anthropic-ai/sdk'
+
+const client = new Anthropic({
+  apiKey: process.env.DIMILINKS_API_KEY,
+  baseURL: 'https://api-direct.dimilinks.com/',
+})
+
+const message = await client.messages.create({
+  model: 'claude-opus-4-8',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'こんにちは' }],
+})
+```
+
+<Note>
+  Anthropic SDK の `base_url` には `https://api-direct.dimilinks.com/` を指定してください。SDK が内部で `/v1/messages` を自動的に付加します。
+</Note>
+
+## Tool Use
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "指定した都市の現在の天気を取得する",
+        "input_schema": {
+          "type": "object",
+          "properties": { "city": {"type": "string"} },
+          "required": ["city"]
+        }
+      }
+    ],
+    "messages": [
+      {"role": "user", "content": "東京の現在の天気を調べてください"}
+    ]
+  }'
+```
+
+モデルのレスポンスに `content[].type === "tool_use"` が含まれている場合は、ツールを実行し、その結果を `role=user` の `tool_result` コンテンツブロックとして追加して対話を続けてください。

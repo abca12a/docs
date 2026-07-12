@@ -1,0 +1,90 @@
+---
+title: "Authentication"
+description: "Call every DimiLinks API with a Bearer token."
+icon: "key"
+---
+
+All DimiLinks endpoints use the same Bearer key. Choose the base URL for the protocol family you use:
+
+- OpenAI-compatible protocol: `https://dimilinks.com/v1`
+- Native Anthropic protocol: `https://api-direct.dimilinks.com/`
+
+Request headers:
+
+```http
+Authorization: Bearer <DIMILINKS_API_KEY>
+Content-Type: application/json
+```
+
+## Examples
+
+```bash
+# OpenAI-compatible endpoint
+curl "https://dimilinks.com/v1/models" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+
+# Native Anthropic endpoint
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 64,
+    "messages": [{"role": "user", "content": "ping"}]
+  }'
+```
+
+## Security recommendations
+
+- Store keys in server-side environment variables, Secrets Manager, or KMS. Never include them in frontend source code or client application bundles.
+- When end users initiate requests, proxy them through your server instead of exposing the key to the browser.
+- Add repository `.env` files to `.gitignore`; never paste keys into screenshots or logs.
+- If a key is exposed, disable it in the console immediately and create a replacement.
+
+## Connect with official SDKs
+
+DimiLinks is protocol-compatible with the official OpenAI and Anthropic SDKs. Point the SDK's base URL to DimiLinks.
+
+OpenAI Python SDK:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-...",
+    base_url="https://dimilinks.com/v1",
+)
+
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+Anthropic Python SDK:
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-...",
+    base_url="https://api-direct.dimilinks.com/",
+)
+
+response = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+<Note>
+  Set the Anthropic SDK `base_url` to `https://api-direct.dimilinks.com/`. The SDK appends `/v1/messages` automatically.
+</Note>
+
+## Image / video result URLs
+
+- Signed image URLs look like `/p/img/...`. They include expiration and signature parameters and therefore do **not** require a Bearer token.
+- Video result URLs look like `/v1/videos/{task_id}/content` and **do** require Bearer authentication. You can proxy the result through your server before returning it to a client.
+- If a URL has expired, retrieve the task again.

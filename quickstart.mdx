@@ -4,7 +4,7 @@ description: "5 分钟跑通一次 Claude 对话调用。"
 icon: "rocket"
 ---
 
-本页用一次 `chat/completions` 调用做最小演示。把示例里的模型名换成图片或视频模型，就能切换到对应的 API。
+本页用一次 `chat/completions` 调用做最小演示。图片和视频使用不同端点，完成对话调用后请按页面末尾的链接继续接入。
 
 ## 1. 准备 API Key
 
@@ -26,7 +26,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "messages": [
       {"role": "system", "content": "你是一个简洁的中文助手。"},
       {"role": "user", "content": "用一句话解释什么是冥王星。"}
@@ -40,7 +40,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
 {
   "id": "chatcmpl_xxx",
   "object": "chat.completion",
-  "model": "claude-sonnet-4-6",
+  "model": "claude-sonnet-5",
   "choices": [
     {
       "index": 0,
@@ -59,7 +59,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
 }
 ```
 
-把 `model` 换成 `gpt-5.5`、`gpt-5.4-mini`、`grok-4.20-fast` 等，就可以调用其他文本模型；密钥不变。
+把 `model` 换成 `gpt-5.5`、`gpt-5.6-terra`、`qwen3.7-max` 等，就可以调用其他文本模型；密钥不变。
 
 ## 3. 用 Anthropic 原生协议（推荐 Claude SDK / Claude Code）
 
@@ -71,7 +71,7 @@ curl "https://api-direct.dimilinks.com/v1/messages" \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "max_tokens": 256,
     "messages": [
       {"role": "user", "content": "你好"}
@@ -88,7 +88,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "stream": true,
     "messages": [
       {"role": "user", "content": "写一首关于深海的四行小诗"}
@@ -100,6 +100,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
 
 ## 5. 下一步
 
+- 查询当前可用模型并选择近期型号：[模型选择与更新](/api-reference/model-guide)
 - 在 Claude Code 中接入 Claude：[Claude Code](/api-reference/integrations/claude-code)
 - 在 Codex CLI 中接入 GPT：[Codex CLI](/api-reference/integrations/codex-cli)
 - 在 Cursor / Continue / Zed / Cherry Studio 等 IDE 中配置：[VS Code 与其他 IDE](/api-reference/integrations/vscode-and-ides)

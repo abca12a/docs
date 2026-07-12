@@ -1,0 +1,167 @@
+---
+title: "Anthropic Messages"
+description: "Call the full Claude model family through the native Anthropic protocol."
+openapi: "POST /messages"
+icon: "brain"
+---
+
+If you already use the official Anthropic SDK, or want native Claude capabilities such as system prompts, Tool Use, and Prompt Caching, call `/v1/messages` directly. It follows the official Anthropic protocol.
+
+<Note>
+  The native Anthropic protocol uses the dedicated `api-direct.dimilinks.com` domain, which is different from the OpenAI-compatible `dimilinks.com/v1` base URL. Both use the same key.
+</Note>
+
+## Request URL
+
+```http
+POST https://api-direct.dimilinks.com/v1/messages
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+anthropic-version: 2023-06-01
+```
+
+We recommend including the `anthropic-version` header explicitly to match Anthropic's official documentation. Requests without it are also supported and use the server's default version.
+
+## Basic example
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "system": "You are a concise assistant.",
+    "messages": [
+      {"role": "user", "content": "Explain Pluto in one sentence."}
+    ]
+  }'
+```
+
+Response (abridged):
+
+```json
+{
+  "id": "msg_xxx",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-5",
+  "content": [
+    { "type": "text", "text": "Pluto is a dwarf planet at the outer edge of the Solar System." }
+  ],
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 32,
+    "output_tokens": 24
+  }
+}
+```
+
+## Streaming
+
+Add `"stream": true`. The server then returns native Anthropic events in this order: `message_start` / `content_block_start` / `content_block_delta` / `content_block_stop` / `message_delta` / `message_stop`.
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -N \
+  -d '{
+    "model": "claude-opus-4-8",
+    "max_tokens": 1024,
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "Write a four-line poem about a rainy night."}
+    ]
+  }'
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `model` | string | Yes | Claude model ID, such as `claude-opus-4-8`, `claude-sonnet-5`, or `claude-haiku-4-5`. |
+| `max_tokens` | integer | Yes | Maximum output tokens for one response. |
+| `messages` | array | Yes | Message array. `role` supports `user` / `assistant`; `content` supports a string or `[{type:"text",...}]` content blocks. |
+| `system` | string \| array | No | System prompt, either a string or an array such as `[{type:"text",...}]`. |
+| `temperature` | number | No | Sampling temperature from 0 to 1. |
+| `top_p` | number | No | Nucleus sampling probability from 0 to 1. |
+| `top_k` | integer | No | Top-k sampling. |
+| `stop_sequences` | string[] | No | Stop generation when one of these sequences is matched. |
+| `stream` | boolean | No | When `true`, returns SSE streaming events. |
+| `tools` | array | No | Native Anthropic Tool Use definitions. |
+| `tool_choice` | object | No | Controls whether a specific tool must be used. |
+| `metadata` | object | No | Metadata such as an end-user identifier. |
+
+## Call with the Anthropic SDK
+
+Python:
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-...",
+    base_url="https://api-direct.dimilinks.com/",
+)
+
+message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+
+print(message.content[0].text)
+```
+
+Node.js:
+
+```ts
+import Anthropic from '@anthropic-ai/sdk'
+
+const client = new Anthropic({
+  apiKey: process.env.DIMILINKS_API_KEY,
+  baseURL: 'https://api-direct.dimilinks.com/',
+})
+
+const message = await client.messages.create({
+  model: 'claude-opus-4-8',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello' }],
+})
+```
+
+<Note>
+  Set the Anthropic SDK `base_url` to `https://api-direct.dimilinks.com/`. The SDK appends `/v1/messages` automatically.
+</Note>
+
+## Tool Use
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "Retrieve the current weather for a city",
+        "input_schema": {
+          "type": "object",
+          "properties": { "city": {"type": "string"} },
+          "required": ["city"]
+        }
+      }
+    ],
+    "messages": [
+      {"role": "user", "content": "Check the current weather in Tokyo."}
+    ]
+  }'
+```
+
+If the model response contains `content[].type === "tool_use"`, execute the tool, then continue the conversation with a `tool_result` content block in a `role=user` message.

@@ -1,0 +1,88 @@
+---
+title: "Retrieve video task"
+description: "Retrieve the status and result URL of a video generation task."
+openapi: "GET /tasks/{task_id}"
+icon: "bars-progress"
+---
+
+Video and image tasks share `/v1/tasks/{task_id}`. After submitting `/v1/videos/generations`, retrieve the returned `task_id` and poll this endpoint.
+
+## Request
+
+```bash
+curl "https://dimilinks.com/v1/tasks/video_xxx" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## In-progress response
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "processing",
+    "progress": 35,
+    "created_at": 1777080000
+  }
+}
+```
+
+## Successful response
+
+After the task reaches `completed`, retrieve the resulting video from `/v1/videos/{task_id}/content` with Bearer authentication.
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "completed",
+    "progress": 100,
+    "created_at": 1777080000,
+    "completed_at": 1777080300
+  }
+}
+```
+
+```bash
+curl -L "https://dimilinks.com/v1/videos/video_xxx/content" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -o video.mp4
+```
+
+If your product displays videos to end users, proxy this download through your server: use the key to retrieve the video, then deliver it under your own authentication so the DimiLinks key is never exposed to the browser.
+
+## Failed response
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "failed",
+    "progress": 100,
+    "created_at": 1777080000,
+    "completed_at": 1777080300,
+    "error": {
+      "code": "upstream_error",
+      "message": "Video generation failed. Please try again later."
+    }
+  }
+}
+```
+
+## Status values
+
+| Status | Meaning | Recommended caller action |
+| --- | --- | --- |
+| `queued`, `pending`, `submitted` | Waiting to be processed | Continue polling |
+| `processing`, `in_progress`, `running` | Generating | Continue polling |
+| `completed`, `success` | Completed | Retrieve `/v1/videos/{task_id}/content` |
+| `failed`, `error`, `cancelled` | Failed | Display the error and allow the user to retry |
+
+## Polling recommendations
+
+- Poll every three to five seconds, slightly less frequently than for image tasks.
+- Poll an individual task for at most ten minutes. After the timeout, tell the user the task failed and allow a retry.
+- Stop polling immediately on `404`; the task ID is probably incorrect or does not belong to the current key.

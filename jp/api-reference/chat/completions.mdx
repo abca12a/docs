@@ -1,0 +1,185 @@
+---
+title: "チャット補完を作成"
+description: "OpenAI 互換プロトコルで Claude、GPT などのテキストモデルを呼び出します。"
+openapi: "POST /chat/completions"
+icon: "message"
+---
+
+`/v1/chat/completions` は、DimiLinks が推奨する対話用エンドポイントです。リクエストとレスポンスの構造は OpenAI 公式 API と同一で、OpenAI SDK をそのまま使用できます。`model` を現在のキーで利用可能なテキストモデル名に変更するだけで、Claude、GPT などのモデルを呼び出せます。
+
+## リクエスト URL
+
+```http
+POST https://dimilinks.com/v1/chat/completions
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## 基本的な例
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "messages": [
+      {"role": "system", "content": "あなたは簡潔に答える日本語アシスタントです。"},
+      {"role": "user", "content": "冥王星とは何か、一文で説明してください。"}
+    ]
+  }'
+```
+
+レスポンス（抜粋）：
+
+```json
+{
+  "id": "chatcmpl_xxx",
+  "object": "chat.completion",
+  "created": 1777080000,
+  "model": "claude-sonnet-5",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "..." },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32,
+    "completion_tokens": 24,
+    "total_tokens": 56
+  }
+}
+```
+
+## ストリーミング出力
+
+リクエストに `"stream": true` を追加すると、サーバーは `text/event-stream` で差分チャンクを返し、最後に `data: [DONE]` を送信して終了します。
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -N \
+  -d '{
+    "model": "gpt-5.5",
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "深海をテーマにした四行の短い詩を書いてください"}
+    ]
+  }'
+```
+
+各イベントの構造：
+
+```text
+data: {"id":"chatcmpl_xxx","object":"chat.completion.chunk","model":"gpt-5.5",
+"choices":[{"index":0,"delta":{"content":"深"},"finish_reason":null}]}
+```
+
+## パラメータ
+
+よく使われるフィールドのみを記載しています。記載されていないフィールドも、モデルが対応していればそのままアップストリームへ渡されます。
+
+| パラメータ | 型 | デフォルト値 | 説明 |
+| --- | --- | --- | --- |
+| `model` | string | 必須 | モデル ID。例：`claude-sonnet-5`、`claude-opus-4-8`、`gpt-5.5`、`gpt-5.6-terra`、`qwen3.7-max` など。 |
+| `messages` | array | 必須 | メッセージ配列。少なくとも 1 件の `role=user` を含める必要があります。`role` は `system` / `user` / `assistant` / `tool` に対応しています。 |
+| `stream` | boolean | `false` | `true` の場合、SSE ストリーミングチャンクを返します。 |
+| `temperature` | number | モデルのデフォルト | サンプリング温度。0〜2。 |
+| `top_p` | number | モデルのデフォルト | nucleus sampling の確率。0〜1。 |
+| `max_tokens` | integer | モデルのデフォルト | 1 回の出力で生成する最大 token 数。Claude 系モデルを呼び出す場合は明示的な指定を推奨します。 |
+| `stop` | string \| string[] | 空 | 指定した文字列に一致すると生成を停止します。 |
+| `presence_penalty` | number | `0` | 同じ話題の繰り返しに対するペナルティ。-2〜2。 |
+| `frequency_penalty` | number | `0` | 同じ単語の繰り返しに対するペナルティ。-2〜2。 |
+| `tools` | array | 空 | ツール呼び出しの定義。OpenAI Tool Calling と互換性のある構造です。 |
+| `tool_choice` | string \| object | `auto` | 特定のツールを強制的に呼び出すかどうかを制御します。 |
+| `response_format` | object | 空 | JSON 出力を要求します。例：`{ "type": "json_object" }`。 |
+| `user` | string | 空 | 監査やレート制限に使用するエンドユーザー識別子。 |
+
+## 推奨モデル
+
+| ユースケース | モデル |
+| --- | --- |
+| 汎用対話 / 長文ドキュメント | `claude-sonnet-5`、`claude-opus-4-8`、`gpt-5.5` |
+| 複雑な推論 / コーディング | `claude-opus-4-8`、`kimi-k2.7-code`、`gpt-5.6-terra` |
+| 日本語・中国語などの汎用タスク | `qwen3.7-max`、`glm-5.2`、`MiniMax-M3` |
+| 低コストの一括処理 | `claude-haiku-4-5`、`gpt-5.4-mini`、`deepseek-v4-flash` |
+| マルチモーダルビジョン | `gpt-image-2`（画像生成専用）。視覚対話への対応はモデルによって異なるため、まず `/v1/models` の `input_modalities` を確認してください。 |
+
+## OpenAI SDK での呼び出し
+
+Python：
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-...",
+    base_url="https://dimilinks.com/v1",
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet-5",
+    messages=[
+        {"role": "system", "content": "あなたは正確に答える日本語アシスタントです。"},
+        {"role": "user", "content": "フーリエ変換について説明してください。"},
+    ],
+    max_tokens=1024,
+)
+
+print(response.choices[0].message.content)
+```
+
+Node.js：
+
+```ts
+import OpenAI from 'openai'
+
+const client = new OpenAI({
+  apiKey: process.env.DIMILINKS_API_KEY,
+  baseURL: 'https://dimilinks.com/v1',
+})
+
+const response = await client.chat.completions.create({
+  model: 'gpt-5.5',
+  messages: [{ role: 'user', content: 'こんにちは' }],
+})
+```
+
+## ツール呼び出し (Tool calling)
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "messages": [
+      {"role": "user", "content": "東京の現在の天気を調べてください"}
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "指定した都市の現在の天気を取得する",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "city": {"type": "string"}
+            },
+            "required": ["city"]
+          }
+        }
+      }
+    ]
+  }'
+```
+
+モデルから `tool_calls` が返されたら、ツールの実行結果を `role=tool` のメッセージとして `messages` に追加し、再度呼び出してください。
+
+## エラー処理
+
+リクエストに失敗すると、OpenAI 形式の `error` ラッパーが返されます。詳細は [エラー](/jp/api-reference/errors) を参照してください。ストリーミングリクエスト中にアップストリーム接続が切れた場合、最後のイベントが `[DONE]` にならないことがあります。「接続切断」も再試行可能なエラーとして扱うことを推奨します。

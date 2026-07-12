@@ -1,0 +1,52 @@
+---
+title: "List models"
+description: "List the models available to the current API key."
+openapi: "GET /models"
+icon: "boxes-stacked"
+---
+
+List the models that the current key can call. The returned `data[]` includes text, image, and video models; distinguish them by their `id` prefixes.
+
+## Request
+
+```bash
+curl "https://dimilinks.com/v1/models" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    { "id": "claude-opus-4-8",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-sonnet-5",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-haiku-4-5",      "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.5",               "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.6-terra",         "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "kimi-k2.7-code",        "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "qwen3.7-max",           "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-image-2",           "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "grok-imagine-video",    "object": "model", "created": 1777080000, "owned_by": "" }
+  ]
+}
+```
+
+## Recommended models
+
+| Use case | Recommended models |
+| --- | --- |
+| General chat, writing, and long-document processing | `claude-sonnet-5`, `claude-opus-4-8`, `gpt-5.5` |
+| Complex reasoning / coding | `claude-opus-4-8`, `kimi-k2.7-code`, `gpt-5.6-terra` |
+| Low-cost batch tasks | `claude-haiku-4-5`, `gpt-5.4-mini`, `deepseek-v4-flash` |
+| Image generation / editing | `gpt-image-2` |
+| Video generation | `grok-imagine-video` |
+
+## Recommendations
+
+- The model catalog changes as production capabilities evolve. Treat `/v1/models` as the runtime source of truth instead of hardcoding model IDs.
+- For guidance on selecting recent models and capability fields, continue to [Model selection and updates](/en/api-reference/model-guide).
+- Models belong to different groups, and the group directly determines the billing multiplier. See [Model groups & pricing](/en/api-reference/groups-and-pricing).
+- If you receive `403 model_not_allowed`, check whether the key is authorized for the model. In most cases, the API key's available groups do not intersect the model's `enable_groups`.
+- Text models use `/v1/chat/completions` or `/v1/messages`; images use `/v1/images/*`; videos use `/v1/videos/*`.

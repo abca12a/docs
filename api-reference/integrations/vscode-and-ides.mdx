@@ -10,7 +10,7 @@ icon: "code"
 
 | 协议族 | base URL | 适合 |
 | --- | --- | --- |
-| OpenAI 兼容 | `https://dimilinks.com/v1` | GPT / Grok / 也可调 Claude（OpenAI 协议） |
+| OpenAI 兼容 | `https://dimilinks.com/v1` | GPT / 其它兼容模型 / 也可调 Claude（OpenAI 协议） |
 | Anthropic 原生 | `https://api-direct.dimilinks.com/` | Claude SDK / Claude Code 风格 |
 
 API key 用 DimiLinks 控制台创建的 Bearer 密钥。
@@ -30,9 +30,9 @@ API key 用 DimiLinks 控制台创建的 Bearer 密钥。
       "apiKey": "sk-..."
     },
     {
-      "title": "DimiLinks Claude Sonnet 4.6",
+      "title": "DimiLinks Claude Sonnet 5",
       "provider": "anthropic",
-      "model": "claude-sonnet-4-6",
+      "model": "claude-sonnet-5",
       "apiBase": "https://api-direct.dimilinks.com/",
       "apiKey": "sk-..."
     }
@@ -51,7 +51,7 @@ API key 用 DimiLinks 控制台创建的 Bearer 密钥。
 | Provider | `OpenAI Compatible` |
 | Base URL | `https://dimilinks.com/v1` |
 | API Key | DimiLinks Bearer |
-| Model ID | 例如 `claude-sonnet-4-6`、`gpt-5.5` |
+| Model ID | 例如 `claude-sonnet-5`、`gpt-5.5` |
 
 如果你想用 Anthropic 原生协议，把 Provider 选成 `Anthropic`、Base URL 改成 `https://api-direct.dimilinks.com/`、其它不变。
 
@@ -61,7 +61,7 @@ Cursor → Settings → Models → "OpenAI API Key"：
 
 - API Base URL：`https://dimilinks.com/v1`
 - API Key：DimiLinks Bearer
-- 然后 "Override OpenAI Models" 里加上你想用的模型 ID（例如 `gpt-5.5`、`claude-sonnet-4-6`）。
+- 然后 "Override OpenAI Models" 里加上你想用的模型 ID（例如 `gpt-5.5`、`claude-sonnet-5`）。
 
 Cursor 当前只支持单一 OpenAI 兼容 base URL；如果你想用 Anthropic 原生协议，建议改用 Continue 或 Cherry Studio。
 
@@ -75,7 +75,7 @@ Cursor 当前只支持单一 OpenAI 兼容 base URL；如果你想用 Anthropic 
     "openai": {
       "api_url": "https://dimilinks.com/v1",
       "available_models": [
-        { "name": "claude-sonnet-4-6", "max_tokens": 200000 },
+        { "name": "claude-sonnet-5", "max_tokens": 200000 },
         { "name": "gpt-5.5", "max_tokens": 128000 }
       ]
     }
@@ -95,7 +95,7 @@ JetBrains 系产品当前依赖官方网关，不直接暴露 base URL 配置。
 
 - API URL：`https://dimilinks.com/v1`
 - API Key：DimiLinks Bearer
-- Model：例如 `claude-sonnet-4-6`、`gpt-5.5`、`grok-4.20-fast`
+- Model：例如 `claude-sonnet-5`、`gpt-5.5`、`qwen3.7-max`
 
 如果只想做 Claude 专用入口，可以选「Anthropic」provider 并填 `https://api-direct.dimilinks.com/`。
 

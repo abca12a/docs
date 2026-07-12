@@ -1,0 +1,108 @@
+---
+title: "画像タスクを取得"
+description: "画像生成タスクのステータスと結果を照会します。"
+openapi: "GET /tasks/{task_id}"
+icon: "bars-progress"
+---
+
+非同期画像タスクを送信した後、`task_id` を使用してタスクのステータスを照会します。新規実装では `/v1/tasks/{task_id}` を優先して使用してください。
+
+## リクエスト
+
+```bash
+curl "https://dimilinks.com/v1/tasks/img_xxx" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## 処理中のレスポンス
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "in_progress",
+  "progress": 50,
+  "created_at": 1777080000
+}
+```
+
+## 成功時のレスポンス
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "succeeded",
+  "progress": 100,
+  "created_at": 1777080000,
+  "completed_at": 1777080060,
+  "result": {
+    "created": 1777080000,
+    "data": [
+      {
+        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+        "file_id": "file_xxx"
+      }
+    ]
+  }
+}
+```
+
+## 画像 URL の形式
+
+タスクが成功したら `result.data[].url` を読み取ります。このフィールドには、相対パス、完全な HTTP(S) URL、または `data:image/...;base64,...` 形式の Data URL が入る場合があります。
+
+Data URL はエラーでもログ内容でもなく、画像データそのものです。Web ページではそのまま表示できます。スクリプトでファイルとして保存する場合は、先に base64 をデコードしてください。
+
+## 失敗時のレスポンス
+
+```json
+{
+  "id": "img_xxx",
+  "task_id": "img_xxx",
+  "object": "image.task",
+  "status": "failed",
+  "progress": 100,
+  "created_at": 1777080000,
+  "completed_at": 1777080060,
+  "error": {
+    "code": "upstream_error",
+    "message": "アップストリームからエラーが返されました"
+  }
+}
+```
+
+## ステータス
+
+| ステータス | 意味 | 呼び出し元での推奨対応 |
+| --- | --- | --- |
+| `queued` | 処理待ち | ポーリングを続けます。 |
+| `in_progress` | 生成中 | ポーリングを続けます。 |
+| `succeeded` | 完了 | `result.data[].url` を表示します。 |
+| `failed` | 失敗 | エラー情報を表示し、ユーザーが再試行できるようにします。 |
+
+## 旧エンドポイント
+
+`GET /v1/images/tasks/{task_id}` は旧クライアント向けに維持されています。新規実装では 2 種類の照会構造を混在させないでください。
+
+旧エンドポイントのレスポンス例：
+
+```json
+{
+  "task_id": "img_xxx",
+  "status": "success",
+  "conversation_id": "conv_xxx",
+  "created": 1777080000,
+  "finished_at": 1777080060,
+  "error": "",
+  "credit_cost": 123,
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```

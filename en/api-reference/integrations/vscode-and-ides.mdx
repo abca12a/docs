@@ -1,0 +1,107 @@
+---
+title: "VS Code and other IDEs"
+description: "Connect DimiLinks to Cursor, Continue, Roo Cline, Zed, JetBrains AI Assistant, and other clients."
+icon: "code"
+---
+
+Most AI coding clients let you customize the base URL and API key. The following sections provide minimal configurations for popular tools; copy the two corresponding values.
+
+## General rules
+
+| Protocol family | Base URL | Suitable for |
+| --- | --- | --- |
+| OpenAI-compatible | `https://dimilinks.com/v1` | GPT, other compatible models, and Claude through the OpenAI protocol |
+| Native Anthropic | `https://api-direct.dimilinks.com/` | Anthropic SDK and Claude Code style clients |
+
+Use a Bearer key created in the DimiLinks console as the API key.
+
+## VS Code · Continue
+
+[Continue](https://continue.dev/) can connect the `models` field in `~/.continue/config.json` directly to the OpenAI-compatible endpoint.
+
+```json
+{
+  "models": [
+    {
+      "title": "DimiLinks GPT-5.5",
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "apiBase": "https://dimilinks.com/v1",
+      "apiKey": "sk-..."
+    },
+    {
+      "title": "DimiLinks Claude Sonnet 5",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "apiBase": "https://api-direct.dimilinks.com/",
+      "apiKey": "sk-..."
+    }
+  ]
+}
+```
+
+`provider: "anthropic"` makes Continue use the native Anthropic protocol, so pair it with the `api-direct` domain.
+
+## VS Code · Roo Cline / Cline
+
+Add a custom provider:
+
+| Field | Value |
+| --- | --- |
+| Provider | `OpenAI Compatible` |
+| Base URL | `https://dimilinks.com/v1` |
+| API Key | DimiLinks Bearer |
+| Model ID | For example, `claude-sonnet-5` or `gpt-5.5` |
+
+To use the native Anthropic protocol, select `Anthropic` as the Provider and change Base URL to `https://api-direct.dimilinks.com/`; leave the other values unchanged.
+
+## Cursor
+
+Open Cursor → Settings → Models → "OpenAI API Key":
+
+- API Base URL: `https://dimilinks.com/v1`
+- API Key: DimiLinks Bearer
+- Under "Override OpenAI Models," add the model IDs you want to use, such as `gpt-5.5` or `claude-sonnet-5`.
+
+Cursor currently supports only one OpenAI-compatible base URL. To use the native Anthropic protocol, use Continue or Cherry Studio instead.
+
+## Zed
+
+In `~/.config/zed/settings.json`:
+
+```json
+{
+  "language_models": {
+    "openai": {
+      "api_url": "https://dimilinks.com/v1",
+      "available_models": [
+        { "name": "claude-sonnet-5", "max_tokens": 200000 },
+        { "name": "gpt-5.5", "max_tokens": 128000 }
+      ]
+    }
+  }
+}
+```
+
+Enter the API key in Zed's settings panel or set it in the `OPENAI_API_KEY` environment variable.
+
+## JetBrains AI Assistant / Junie
+
+JetBrains products currently depend on the official gateway and do not expose direct base URL configuration. We recommend embedding DimiLinks in the IDE through [Cherry Studio](/en/api-reference/integrations/ccswitch) or Continue, bypassing the JetBrains gateway.
+
+## Open WebUI / LobeChat / NextChat and similar clients
+
+These self-hosted frontends generally include an OpenAI-compatible provider. Configure it as follows:
+
+- API URL: `https://dimilinks.com/v1`
+- API Key: DimiLinks Bearer
+- Model: for example, `claude-sonnet-5`, `gpt-5.5`, or `qwen3.7-max`
+
+For a Claude-only endpoint, select an Anthropic provider and enter `https://api-direct.dimilinks.com/`.
+
+## Troubleshooting
+
+- **Entered `https://dimilinks.com/` without `/v1`:** OpenAI-compatible clients return `404`; append `/v1`.
+- **Using a Claude model through the OpenAI protocol:** This is supported, but some advanced capabilities, including Tool Use and thinking modes, are available only through the native Anthropic protocol. Switch to an Anthropic provider when you need them.
+- **HTTPS certificate error:** Trust standard CA certificates at the operating-system level. DimiLinks does not require an additional private certificate.
+- **Large-file context / vision:** Capabilities vary by model. Use [List models](/en/api-reference/models) to inspect `input_modalities` and `output_modalities` first.

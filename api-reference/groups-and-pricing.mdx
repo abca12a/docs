@@ -6,7 +6,7 @@ icon: "scale-balanced"
 
 DimiLinks 上不同模型属于不同分组，分组直接决定最终费用。调用前的硬约束：
 
-- 同一个模型只在固定的若干分组里开放。例如 `claude-opus-4-7` 只在 `claude 特价` 分组里能调，不存在「default 分组也能跑 claude」。
+- 同一个模型只在固定的若干分组里开放。例如 `claude-opus-4-8` 只在 Claude 分组里能调，不存在「default 分组也能跑 Claude」。
 - 你的 API Key 自身有「可用分组」字段，必须与目标模型的可用分组有交集，调用才会通过。
 - 同一段提示词在不同模型 / 不同分组之间费用不能线性外推：我们按「官方价 × 模型倍率 × 分组倍率」结算，组合差异可能达到几十倍。
 
@@ -27,43 +27,44 @@ curl https://dimilinks.com/api/pricing
   "group_ratio": {
     "default": 1,
     "open ai 特价": 0.5,
-    "claude 特价": 0.12,
-    "grok": 0.5,
+    "claude 特价": 0.3,
+    "claude-max": 0.8,
     "gpt-image-2": 1
   },
   "usable_group": {
     "default": "",
     "open ai 特价": "open ai 自有号池",
     "claude 特价": "claude 自有号池",
-    "grok": "grok 自有号池",
+    "claude-max": "claude 满血渠道",
     "gpt-image-2": ""
   },
-  "auto_groups": ["claude 特价"],
+  "auto_groups": [],
   "supported_endpoint": {
     "openai":      { "path": "/v1/chat/completions",   "method": "POST" },
     "anthropic":   { "path": "/v1/messages",           "method": "POST" },
-    "image_generation": { "path": "/v1/images/generations", "method": "POST" }
+    "image_generation": { "path": "/v1/images/generations", "method": "POST" },
+    "image_edits": { "path": "/v1/images/edits", "method": "POST" }
   },
   "data": [
     {
-      "model_name": "gpt-5.2",
-      "enable_groups": ["default", "open ai 特价"],
-      "model_ratio": 0.875,
-      "completion_ratio": 8,
-      "cache_ratio": 0.071428571429,
+      "model_name": "gpt-5.5",
+      "enable_groups": ["open ai 特价", "default"],
+      "model_ratio": 2.5,
+      "completion_ratio": 6,
+      "cache_ratio": 0.1,
       "quota_type": 0,
       "model_price": 0,
       "supported_endpoint_types": ["openai"]
     },
     {
-      "model_name": "claude-opus-4-7",
-      "enable_groups": ["claude 特价"],
+      "model_name": "claude-opus-4-8",
+      "enable_groups": ["claude 特价", "claude-max"],
       "model_ratio": 2.5,
       "completion_ratio": 5,
-      "cache_ratio": null,
+      "cache_ratio": 0.1,
       "quota_type": 0,
       "model_price": 0,
-      "supported_endpoint_types": ["anthropic"]
+      "supported_endpoint_types": ["anthropic", "openai"]
     },
     {
       "model_name": "gpt-image-2",
@@ -72,7 +73,12 @@ curl https://dimilinks.com/api/pricing
       "completion_ratio": 0,
       "cache_ratio": null,
       "quota_type": 1,
-      "model_price": 0.02,
+      "model_price": 0.08,
+      "resolution_options": [
+        { "resolution": "1k", "model_price": 0.08, "max_n": 1 },
+        { "resolution": "2k", "model_price": 0.15, "max_n": 4 },
+        { "resolution": "4k", "model_price": 0.30, "max_n": 4 }
+      ],
       "supported_endpoint_types": ["image_generation", "image_edits"]
     }
   ]
@@ -106,7 +112,7 @@ curl https://dimilinks.com/v1/chat/completions \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-opus-4-7",
+    "model": "claude-opus-4-8",
     "messages": [{"role": "user", "content": "你好"}],
     "group": "claude 特价"
   }'
@@ -135,21 +141,21 @@ total_cost = model_price × group_ratio × n
 
 ## 估算示例
 
-**`claude-opus-4-7` 在 `claude 特价` 分组**，输入 1k token、输出 500 token：
+**`claude-opus-4-8` 在 `claude 特价` 分组**，输入 1k token、输出 500 token：
 
-- `model_ratio = 2.5`，`completion_ratio = 5`，`group_ratio = 0.12`
-- `input  = 1000 × 2.5     × 0.12 = 300`
-- `output = 500  × 2.5 × 5 × 0.12 = 750`
-- `total ≈ 1050`（系统内部 quota，按账户 `quota_per_unit` 折算成显示货币）
+- `model_ratio = 2.5`，`completion_ratio = 5`，`group_ratio = 0.3`
+- `input  = 1000 × 2.5     × 0.3 = 750`
+- `output = 500  × 2.5 × 5 × 0.3 = 1875`
+- `total ≈ 2625`（系统内部 quota，按账户 `quota_per_unit` 折算成显示货币）
 
-**`gpt-5.2` 在 `default` 与 `open ai 特价` 分组对比**：
+**`gpt-5.5` 在 `default` 与 `open ai 特价` 分组对比**：
 
-- `default`：`group_ratio = 1`，按 `model_ratio 0.875` × `completion_ratio 8` 全额结算。
+- `default`：`group_ratio = 1`，按 `model_ratio 2.5` × `completion_ratio 6` 全额结算。
 - `open ai 特价`：`group_ratio = 0.5`，最终费用是 `default` 分组的一半。
 
-**`gpt-image-2` 异步出 1 张图**：
+**`gpt-image-2` 异步出 1 张 2K 图片**：
 
-- `model_price = 0.02`，`group_ratio` 取 `gpt-image-2 = 1` 或 `default = 1`，单次费用 `0.02`。
+- 2K 档 `model_price = 0.15`，`group_ratio` 取 `gpt-image-2 = 1` 或 `default = 1`，单次费用 `0.15`。1K / 4K 档分别读取 `resolution_options`，不要套用 2K 价格。
 
 ## 工程化建议
 

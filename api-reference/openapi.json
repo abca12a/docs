@@ -46,7 +46,7 @@
       "post": {
         "tags": ["Chat"],
         "summary": "Create chat completion",
-        "description": "OpenAI-compatible chat completions endpoint. Supports Claude / GPT / Grok and other text models.",
+        "description": "OpenAI-compatible chat completions endpoint. Supports Claude, GPT, and other available text models.",
         "operationId": "createChatCompletion",
         "requestBody": {
           "required": true,
@@ -380,7 +380,7 @@
       "Model": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "example": "claude-sonnet-4-6" },
+          "id": { "type": "string", "example": "claude-sonnet-5" },
           "object": { "type": "string", "example": "model" },
           "created": { "type": "integer", "example": 1777080000 },
           "owned_by": { "type": "string", "example": "" }
@@ -410,7 +410,7 @@
       "ChatCompletionRequest": {
         "type": "object",
         "properties": {
-          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "model": { "type": "string", "example": "claude-sonnet-5" },
           "messages": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ChatMessage" }
@@ -459,7 +459,7 @@
           "id": { "type": "string", "example": "chatcmpl_xxx" },
           "object": { "type": "string", "example": "chat.completion" },
           "created": { "type": "integer", "example": 1777080000 },
-          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "model": { "type": "string", "example": "claude-sonnet-5" },
           "choices": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ChatCompletionChoice" }
@@ -501,7 +501,7 @@
       "AnthropicMessageRequest": {
         "type": "object",
         "properties": {
-          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "model": { "type": "string", "example": "claude-sonnet-5" },
           "max_tokens": { "type": "integer", "example": 1024 },
           "messages": {
             "type": "array",
@@ -537,7 +537,7 @@
           "id": { "type": "string", "example": "msg_xxx" },
           "type": { "type": "string", "example": "message" },
           "role": { "type": "string", "example": "assistant" },
-          "model": { "type": "string", "example": "claude-sonnet-4-6" },
+          "model": { "type": "string", "example": "claude-sonnet-5" },
           "content": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/AnthropicContentBlock" }

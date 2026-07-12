@@ -1,0 +1,151 @@
+---
+title: "Create image generation"
+description: "Generate images with gpt-image-2, including asynchronous tasks and JSON reference images."
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+`gpt-image-2` is the DimiLinks image generation model. It supports text-to-image and image-to-image workflows, with up to nine reference images supplied through `image_urls`.
+
+<Note>
+  We recommend adding `?async=true`. Synchronous mode waits for image generation to finish before returning and is more likely to be interrupted by a gateway or client timeout.
+</Note>
+
+## Request URL
+
+```http
+POST https://dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## Text-to-image example
+
+```bash
+curl "https://dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "A cyberpunk poster of a cat, neon lighting, cinematic atmosphere",
+    "n": 1,
+    "size": "16:9",
+    "resolution": "2k",
+    "output_format": "png"
+  }'
+```
+
+## Image-to-image example
+
+```bash
+curl "https://dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "Keep the person consistent and restyle the image as a cinematic beach portrait at sunset",
+    "n": 1,
+    "size": "16:9",
+    "resolution": "4k",
+    "image_urls": [
+      "https://example.com/reference.png"
+    ]
+  }'
+```
+
+## Asynchronous response
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": []
+}
+```
+
+After receiving `task_id`, call [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks) to retrieve the result.
+
+## Synchronous response
+
+Synchronous mode returns after the image is ready:
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```
+
+## Result fields
+
+`data[].url` is not always a public image URL. Support all three forms:
+
+- `/p/img/...`: a relative path. Prefix it with `https://dimilinks.com` before displaying or downloading it. The path requires no Bearer token because the URL includes a signature and expiration time.
+- `https://...`: a complete image URL that can be requested or displayed directly.
+- `data:image/...;base64,...`: a Data URL containing the image itself. A webpage can use it directly as `<img src>`; a server-side script must decode the base64 before saving it as a file.
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `model` | string | `gpt-image-2` | Model name. |
+| `prompt` | string | Required | Generation or editing prompt. |
+| `n` | integer | `1` | Number of images generated per request. The `1k` tier is fixed at `1`; `2k` and `4k` support up to `4`. |
+| `size` | string | `1024x1024` | Aspect ratio such as `1:1` or `16:9`, or exact `WxH` pixels such as `3840x2160`. |
+| `resolution` | string | Empty | Resolution tier: `1k` / `2k` / `4k`. |
+| `output_format` | string | Empty | Output format: `png` / `jpeg` / `webp`. |
+| `output_compression` | integer | Empty | Output compression quality for `jpeg` or `webp`. |
+| `background` | string | Empty | Background preference: `auto` / `transparent` / `opaque`. |
+| `moderation` | string | Empty | Content moderation level: `auto` / `low`. |
+| `user` | string | Empty | Caller-side user identifier for auditing. |
+| `wait_for_result` | boolean | `true` | Set to `false` for asynchronous submission. |
+| `image_urls` | string \| array \| object | Empty | JSON reference-image field, with up to nine images. |
+| `mask_url` | string | Empty | Inpainting mask; requires at least one reference image. |
+| `response_format` | string | Empty | Set to `b64_json` to return base64 directly; not recommended as the default. |
+
+## Enable asynchronous mode
+
+Any one of the following enables asynchronous mode:
+
+- Query parameter: `?async=true`
+- Query parameter: `?wait_for_result=false`
+- Request header: `Prefer: respond-async`
+- Request body: `"wait_for_result": false`
+
+## Reference-image format
+
+We recommend `image_urls`:
+
+```json
+{
+  "image_urls": [
+    "https://example.com/ref.png",
+    "data:image/png;base64,iVBORw0KGgo..."
+  ]
+}
+```
+
+The API also accepts `reference_images`, `images`, `image`, `image_url`, `input_image`, and `input_images`.
+
+## Reference-image limits
+
+- A request can include up to nine reference images.
+- Each reference image can be up to 20 MB.
+- HTTP(S) URLs, Data URLs, and raw base64 are supported.
+- Browser `blob:` URLs cannot be submitted directly. Upload the image to your server or convert it to a Data URL first.
+
+## Differences between resolution tiers
+
+| Tier | Maximum `n` per request | Typical time | Description |
+| --- | ---: | ---: | --- |
+| `1k` | 1 | About 60 seconds | Entry tier for previews or low-cost batch generation. |
+| `2k` | 4 | About 120 seconds | Recommended tier for most production image generation. |
+| `4k` | 4 | About 180 seconds | High-fidelity tier that also supports some extreme aspect ratios such as `21:9`. |
+
+See the Pricing page in the console for current prices. Each resolution tier is priced independently.

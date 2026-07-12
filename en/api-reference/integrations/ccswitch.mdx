@@ -1,0 +1,84 @@
+---
+title: "One-click import into CC Switch / Cherry Studio"
+description: "Send a key directly from the DimiLinks console to CC Switch or Cherry Studio."
+icon: "share-from-square"
+---
+
+If you have installed [CC Switch](https://github.com/farion1231/cc-switch) or [Cherry Studio](https://github.com/CherryHQ/cherry-studio), the DimiLinks console can send the current key directly to your local client, so you do not need to enter the base URL and model manually.
+
+## One-click import workflow
+
+1. Open the API Keys page in the DimiLinks console.
+2. On the target key, click "Import to CC Switch" or "Import to Cherry Studio." Before importing to CC Switch, you can choose which tool to configure (Claude Code / Codex / Gemini CLI) under "Configure CC Switch for." The console recommends a default based on the key's models.
+3. The browser opens a system-level deep link. The corresponding client handles it and writes the base URL, key, and model automatically.
+
+The console recommends a target provider based on the key's model restrictions and groups:
+
+| Key models | Target provider | Base URL |
+| --- | --- | --- |
+| Claude family only | Anthropic style | `https://api-direct.dimilinks.com/` |
+| Gemini family only | Gemini style | `https://api-direct.dimilinks.com/` |
+| Other (GPT / unrestricted) | OpenAI style | `https://dimilinks.com/v1` |
+
+Common reasons an import fails:
+
+- The client is not installed or has not registered its deep-link scheme (`ccswitch://` / `cherrystudio://`).
+- The browser blocked the scheme navigation. Focus the address bar and press Enter once, then try again.
+- When the operating system sees the protocol for the first time, it asks whether to open the local application. Approve the request.
+- The import succeeded but does not appear in CC Switch: providers appear only in the list for the tool selected during import. Claude Code, Codex, and Gemini have separate lists. Open the correct tool tab, or select a different target in the console and import again.
+- For Claude Code, choose a key in a Claude group. A key limited to general-purpose groups cannot call Claude models.
+
+## CC Switch deep-link structure
+
+The console generates a URL like this:
+
+```text
+ccswitch://v1/import?resource=provider
+  &app=claude
+  &name=My%20Claude%20Workspace
+  &apiKey=sk-...
+  &endpoint=https%3A%2F%2Fapi-direct.dimilinks.com
+  &model=claude-sonnet-5
+```
+
+| Parameter | Description |
+| --- | --- |
+| `resource` | Fixed value: `provider` |
+| `app` | `claude` / `codex` / `gemini`; recommended from the key's model family by default and selectable before import |
+| `name` | Provider name shown in CC Switch |
+| `apiKey` | DimiLinks Bearer key |
+| `endpoint` | Base URL for the target tool: `https://dimilinks.com/v1` or `https://api-direct.dimilinks.com`, without a trailing slash |
+| `model` | Included when the key allows only one model; otherwise, the user selects a model in CC Switch |
+
+## Cherry Studio deep-link structure
+
+```text
+cherrystudio://providers/api-keys?v=1&data=<urlsafe-base64>
+```
+
+`data` is URL-safe base64 that decodes to JSON:
+
+```json
+{
+  "id": "dimilinks-token-42",
+  "name": "Claude Workspace",
+  "apiKey": "sk-...",
+  "baseUrl": "https://api-direct.dimilinks.com/",
+  "type": "anthropic"
+}
+```
+
+`type` matches a Cherry Studio provider type: `openai` / `anthropic` / `gemini`.
+
+## Add a provider manually without a deep link
+
+If you do not want one-click import, create the provider manually in the client:
+
+| Client | Type | Base URL | Key |
+| --- | --- | --- | --- |
+| Cherry Studio | OpenAI | `https://dimilinks.com/v1` | DimiLinks Bearer |
+| Cherry Studio | Anthropic | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
+| Cherry Studio | Gemini | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
+| CC Switch | Codex / Claude / Gemini | Same as above | Same as above |
+
+After setup, use "Test connection" or send a minimal chat message to verify the connection.

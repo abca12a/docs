@@ -1,0 +1,56 @@
+---
+title: "エラー"
+description: "DimiLinks API のエラーレスポンス形式と一般的な HTTP ステータス。"
+icon: "circle-exclamation"
+---
+
+DimiLinks のエラーレスポンス形式は、上流のプロトコルに準拠します。
+
+- `https://dimilinks.com/v1/*`（OpenAI 互換）の API では、OpenAI 形式の `error` ラッパーを使用します。
+- `https://api-direct.dimilinks.com/v1/messages`（Anthropic ネイティブ）の API では、Anthropic ネイティブ形式 `{"type":"error","error":{...}}` を使用します。
+
+OpenAI 形式（`dimilinks.com/v1`）：
+
+```json
+{
+  "error": {
+    "message": "prompt は空にできません",
+    "type": "invalid_request_error",
+    "code": "invalid_request_error"
+  }
+}
+```
+
+Anthropic 形式（`api-direct.dimilinks.com`）：
+
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "invalid_request_error",
+    "message": "messages は空にできません"
+  }
+}
+```
+
+## 一般的なエラー
+
+| HTTP | code | 意味 | 呼び出し側の対応 |
+| ---: | --- | --- | --- |
+| `400` | `invalid_request_error` / `invalid_reference_image` | パラメータの誤り、空の prompt、参照画像の異常 | パラメータを修正するようユーザーに案内 |
+| `401` | `missing_api_key` / `invalid_api_key` | キーがない、または無効 | キーの設定を確認 |
+| `402` | `insufficient_balance` | 残高不足 | チャージまたは管理者への連絡を案内 |
+| `403` | `model_not_allowed` | 現在のキーにモデルの権限がない、または利用可能グループとモデルの `enable_groups` に共通項がない | モデルの許可リストを確認し、[モデルグループと料金](/jp/api-reference/groups-and-pricing) を参考に `group` を調整するかキーを変更 |
+| `404` | `not_found` | タスクが存在しない、または現在のユーザーに属していない | ポーリングを停止 |
+| `429` | `rate_limit_rpm` / `rate_limit_tpm` | レート制限 | バックオフ後に再試行し、並行数を減らす |
+| `500` | `internal_error` / `billing_error` | サービス内部エラー | ログを記録し、後で再試行 |
+| `502` / `503` | `upstream_error` / `service_unavailable` | 上流チャネルが一時的に利用不可 | ユーザーによる再試行を許可可能 |
+
+## 処理上の推奨事項
+
+- `400` では `error.message` をそのままユーザーに表示し、入力を修正できるようにします。
+- `401` / `403` ではキーまたはモデル権限の確認を促し、暗黙に再試行しないでください。
+- `429` では指数バックオフを使用し、並行数を減らしてください。すぐに高頻度で再試行しないでください。
+- `5xx` / `502` / `503` ではユーザーによる再試行を許可できますが、上流の問題を調査できるようログを記録してください。
+- タスク API が `404` を返したら、不要なリクエストを避けるためすぐにポーリングを停止してください。
+- 同じビジネスロジックから 2 つのドメインを呼び出す場合は、HTTP クライアント側で「`error.message` または `error.error.message` を読み取る」処理を共通化し、呼び出し元ごとに互換処理を重複実装しないことを推奨します。

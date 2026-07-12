@@ -1,0 +1,73 @@
+---
+title: "Create image edit"
+description: "Upload reference images with multipart/form-data and generate edited results."
+openapi: "POST /images/edits"
+icon: "wand-magic-sparkles"
+---
+
+`/v1/images/edits` accepts `multipart/form-data` and uploads reference images as files. If your references are already URLs or Data URLs, we recommend using [Create image generation](/en/api-reference/images/gpt-image-2/generation) with `image_urls` for a more reliable asynchronous workflow.
+
+## Request URL
+
+```http
+POST https://dimilinks.com/v1/images/edits
+Content-Type: multipart/form-data
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+Upload at least one `image` file.
+
+## Single-image example
+
+```bash
+curl "https://dimilinks.com/v1/images/edits" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -F "model=gpt-image-2" \
+  -F "prompt=Restyle the image as vintage film while preserving the main subject" \
+  -F "size=16:9" \
+  -F "resolution=2k" \
+  -F "image=@/path/to/reference.png"
+```
+
+## Multiple-image example
+
+Upload up to nine reference images.
+
+```bash
+curl "https://dimilinks.com/v1/images/edits" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -F "model=gpt-image-2" \
+  -F "prompt=Blend the styles of both reference images to create a primary ecommerce product image" \
+  -F "size=1:1" \
+  -F "resolution=4k" \
+  -F "image[]=@/path/to/ref-1.png" \
+  -F "image[]=@/path/to/ref-2.png"
+```
+
+## File fields
+
+| Field | Description |
+| --- | --- |
+| `image` | Single file; recommended. |
+| `image[]` | Multiple files, up to nine. |
+| `images` | Compatibility field for multiple files. |
+| `images[]` | Compatibility field for multiple files. |
+| `image_1`, `image_2` | Compatibility fields with numbered names. |
+| `mask` | Optional. Currently processed as another reference image. |
+
+## Response
+
+On success, the endpoint returns the same structure as the generation endpoint:
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```

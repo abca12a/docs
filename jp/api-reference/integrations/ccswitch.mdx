@@ -1,0 +1,84 @@
+---
+title: "CC Switch / Cherry Studio へのワンクリックインポート"
+description: "DimiLinks コンソールから CC Switch または Cherry Studio へキーを直接送信します。"
+icon: "share-from-square"
+---
+
+すでに [CC Switch](https://github.com/farion1231/cc-switch) または [Cherry Studio](https://github.com/CherryHQ/cherry-studio) をインストールしている場合は、DimiLinks コンソールから現在のキーをローカルクライアントへワンクリックで送信できます。base URL やモデルを手動で入力する必要はありません。
+
+## ワンクリックインポートの手順
+
+1. DimiLinks コンソールの「API キー」ページを開きます。
+2. 対象キーの右側にある「CC Switch にインポート」または「Cherry Studio にインポート」をクリックします。CC Switch にインポートする前に、「CC Switch の設定先」で書き込み先ツール（Claude Code / Codex / Gemini CLI）を選択できます。デフォルトでは、キーのモデルに基づいて自動的に推奨されます。
+3. ブラウザにシステムレベルの遷移確認が表示され、対応するクライアントが deep link を処理して base URL、キー、モデルを自動的に設定します。
+
+コンソールは、キーの「モデル制限」とグループに基づいて対象 provider を自動的に推奨します。
+
+| キーのモデル | 対象 provider | base URL |
+| --- | --- | --- |
+| Claude シリーズのみ | Anthropic 形式 | `https://api-direct.dimilinks.com/` |
+| Gemini シリーズのみ | Gemini 形式 | `https://api-direct.dimilinks.com/` |
+| その他（GPT / Grok / モデル制限なし） | OpenAI 形式 | `https://dimilinks.com/v1` |
+
+インポートに失敗する場合は、次の原因が考えられます。
+
+- クライアントがインストールされていないか、deep link プロトコル（`ccswitch://` / `cherrystudio://`）が登録されていません。
+- ブラウザが scheme の遷移をブロックしています。アドレスバーで一度 Enter キーを押してから再試行してください。
+- OS がそのプロトコルを初めて検出した場合、ローカルアプリを開くか確認されます。許可してください。
+- インポートには成功したものの CC Switch で見つからない場合、provider はインポート時に選択したツールのリストにのみ表示されます（Claude Code / Codex / Gemini はそれぞれ独立しています）。対応するツールのタブに切り替えて確認するか、コンソールに戻って対象を選び直し、再度インポートしてください。
+- Claude Code で使用する場合は、Claude グループのキーを選択してください。汎用グループのキーでは Claude シリーズのモデルを呼び出せません。
+
+## CC Switch deep link の構造
+
+コンソールが生成するリンクは次の形式です。
+
+```text
+ccswitch://v1/import?resource=provider
+  &app=claude
+  &name=My%20Claude%20Workspace
+  &apiKey=sk-...
+  &endpoint=https%3A%2F%2Fapi-direct.dimilinks.com
+  &model=claude-sonnet-5
+```
+
+| パラメータ | 説明 |
+| --- | --- |
+| `resource` | `provider` 固定 |
+| `app` | `claude` / `codex` / `gemini`。デフォルトではキーのモデルファミリーに基づいて推奨され、インポート前に手動で切り替えられます |
+| `name` | CC Switch 内に表示される provider 名 |
+| `apiKey` | DimiLinks Bearer キー |
+| `endpoint` | base URL（対象ツールに応じて `https://dimilinks.com/v1` または `https://api-direct.dimilinks.com`。末尾のスラッシュは含みません） |
+| `model` | キーで 1 つのモデルのみが許可されている場合に付加されます。指定されていない場合は、ユーザーが CC Switch 内で選択します |
+
+## Cherry Studio deep link の構造
+
+```text
+cherrystudio://providers/api-keys?v=1&data=<urlsafe-base64>
+```
+
+`data` は URL-safe base64 文字列で、デコードすると次の JSON になります。
+
+```json
+{
+  "id": "dimilinks-token-42",
+  "name": "Claude Workspace",
+  "apiKey": "sk-...",
+  "baseUrl": "https://api-direct.dimilinks.com/",
+  "type": "anthropic"
+}
+```
+
+`type` の値は Cherry Studio 内の provider タイプに対応します：`openai` / `anthropic` / `gemini`。
+
+## 手動で追加する（deep link を使用しない場合）
+
+ワンクリックインポートを使用しない場合は、クライアント内で provider を手動作成することもできます。
+
+| クライアント | 選択するタイプ | base URL | キー |
+| --- | --- | --- | --- |
+| Cherry Studio | OpenAI | `https://dimilinks.com/v1` | DimiLinks Bearer |
+| Cherry Studio | Anthropic | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
+| Cherry Studio | Gemini | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
+| CC Switch | Codex / Claude / Gemini | 上記と同じ | 上記と同じ |
+
+設定後は、まず「接続テスト」を実行するか、最も簡単なメッセージを 1 件送信して、接続できることを確認してください。

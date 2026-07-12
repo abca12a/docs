@@ -5,9 +5,11 @@ This repository contains the Mintlify documentation site for DimiLinks API.
 ## Structure
 
 - `docs.json`: Mintlify site configuration and navigation.
-- `index.mdx`: Documentation landing page.
-- `quickstart.mdx`: Minimal image generation flow.
-- `api-reference/`: API reference pages and OpenAPI specification.
+- `index.mdx`, `quickstart.mdx`, `api-reference/`: Simplified Chinese source and default routes.
+- `en/`: Complete English documentation under `/en/*`.
+- `jp/`: Complete Japanese documentation under `/jp/*`.
+- `data/supported-models.json`: Verified production model snapshot used by examples.
+- `api-reference/openapi.json`: Shared OpenAPI specification.
 
 ## Local preview
 
@@ -28,6 +30,7 @@ mint dev
 Run these before publishing when Mintlify CLI is available:
 
 ```bash
+node scripts/verify-docs.mjs
 mint broken-links
 ```
 

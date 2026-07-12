@@ -1,0 +1,90 @@
+---
+title: "認証"
+description: "Bearer Token で DimiLinks のすべての API を呼び出します。"
+icon: "key"
+---
+
+DimiLinks のすべての API は同じ Bearer キーを使用します。プロトコルに応じて base URL を選択してください。
+
+- OpenAI 互換プロトコル：`https://dimilinks.com/v1`
+- Anthropic ネイティブプロトコル：`https://api-direct.dimilinks.com/`
+
+リクエストヘッダー：
+
+```http
+Authorization: Bearer <DIMILINKS_API_KEY>
+Content-Type: application/json
+```
+
+## 例
+
+```bash
+# OpenAI 互換エンドポイント
+curl "https://dimilinks.com/v1/models" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+
+# Anthropic ネイティブエンドポイント
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 64,
+    "messages": [{"role": "user", "content": "ping"}]
+  }'
+```
+
+## セキュリティに関する推奨事項
+
+- キーはサーバー側の環境変数、Secrets Manager、KMS に保存し、フロントエンドのソースコードやクライアントの配布パッケージには含めないでください。
+- エンドユーザーからのリクエストはサーバーで中継し、キーをブラウザに公開しないでください。
+- リポジトリの `.env` ファイルを `.gitignore` に追加し、キーをスクリーンショットやログに記録しないでください。
+- 漏えいを確認した場合は、コンソールですぐに古いキーを無効化し、新しいキーを作成してください。
+
+## 公式 SDK から直接接続する
+
+DimiLinks は OpenAI および Anthropic の公式 SDK プロトコルと互換性があります。base URL を DimiLinks に変更するだけで利用できます。
+
+OpenAI Python SDK：
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-...",
+    base_url="https://dimilinks.com/v1",
+)
+
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": "こんにちは"}],
+)
+```
+
+Anthropic Python SDK：
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-...",
+    base_url="https://api-direct.dimilinks.com/",
+)
+
+response = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "こんにちは"}],
+)
+```
+
+<Note>
+  Anthropic SDK の `base_url` は `https://api-direct.dimilinks.com/` を指定してください。SDK が内部で `/v1/messages` を自動的に付加します。
+</Note>
+
+## 画像 / 動画の結果リンク
+
+- 画像の署名付きリンクは `/p/img/...` の形式で、URL に有効期限と署名パラメータを含みます。Bearer を追加する**必要はありません**。
+- 動画の結果リンクは `/v1/videos/{task_id}/content` の形式で、Bearer が**必要です**。サーバー側でプロキシしてから配信することもできます。
+- リンクの有効期限が切れた場合は、タスクを再度照会してください。

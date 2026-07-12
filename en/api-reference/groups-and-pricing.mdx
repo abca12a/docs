@@ -1,0 +1,165 @@
+---
+title: "Model groups & pricing"
+description: "DimiLinks exposes models through groups, and the group directly determines the billing multiplier."
+icon: "scale-balanced"
+---
+
+Models on DimiLinks belong to different groups, and the selected group directly determines the final cost. The following constraints apply before a request can run:
+
+- Each model is available only in a fixed set of groups. For example, `claude-opus-4-8` is available only in Claude groups; the `default` group cannot run Claude.
+- Your API key has its own set of available groups. That set must intersect the target model's available groups for the request to succeed.
+- You cannot extrapolate the cost of the same prompt linearly across models or groups. Billing uses "official price × model multiplier × group multiplier," and combinations may differ by dozens of times.
+
+> Do not hardcode multipliers. Groups and prices may change at any time. Treat the `GET /api/pricing` response as the runtime source of truth.
+
+## Authoritative endpoint
+
+```bash
+curl https://dimilinks.com/api/pricing
+```
+
+This public endpoint requires no authentication and returns all live groups, public group descriptions, models, and multipliers:
+
+```json
+{
+  "success": true,
+  "pricing_version": "a42d372ccf0b5dd13ecf71203521f9d2",
+  "group_ratio": {
+    "default": 1,
+    "open ai 特价": 0.5,
+    "claude 特价": 0.3,
+    "claude-max": 0.8,
+    "gpt-image-2": 1
+  },
+  "usable_group": {
+    "default": "",
+    "open ai 特价": "open ai 自有号池",
+    "claude 特价": "claude 自有号池",
+    "claude-max": "claude 满血渠道",
+    "gpt-image-2": ""
+  },
+  "auto_groups": [],
+  "supported_endpoint": {
+    "openai":      { "path": "/v1/chat/completions",   "method": "POST" },
+    "anthropic":   { "path": "/v1/messages",           "method": "POST" },
+    "image_generation": { "path": "/v1/images/generations", "method": "POST" },
+    "image_edits": { "path": "/v1/images/edits", "method": "POST" }
+  },
+  "data": [
+    {
+      "model_name": "gpt-5.5",
+      "enable_groups": ["open ai 特价", "default"],
+      "model_ratio": 2.5,
+      "completion_ratio": 6,
+      "cache_ratio": 0.1,
+      "quota_type": 0,
+      "model_price": 0,
+      "supported_endpoint_types": ["openai"]
+    },
+    {
+      "model_name": "claude-opus-4-8",
+      "enable_groups": ["claude 特价", "claude-max"],
+      "model_ratio": 2.5,
+      "completion_ratio": 5,
+      "cache_ratio": 0.1,
+      "quota_type": 0,
+      "model_price": 0,
+      "supported_endpoint_types": ["anthropic", "openai"]
+    },
+    {
+      "model_name": "gpt-image-2",
+      "enable_groups": ["gpt-image-2", "default"],
+      "model_ratio": 0,
+      "completion_ratio": 0,
+      "cache_ratio": null,
+      "quota_type": 1,
+      "model_price": 0.08,
+      "resolution_options": [
+        { "resolution": "1k", "model_price": 0.08, "max_n": 1 },
+        { "resolution": "2k", "model_price": 0.15, "max_n": 4 },
+        { "resolution": "4k", "model_price": 0.30, "max_n": 4 }
+      ],
+      "supported_endpoint_types": ["image_generation", "image_edits"]
+    }
+  ]
+}
+```
+
+## Field definitions
+
+| Field | Meaning |
+| --- | --- |
+| `group_ratio` | Multiplier map for all current groups; the sole authoritative source |
+| `usable_group` | Public descriptions for groups, suitable for documentation or UI display |
+| `auto_groups` | The server's allowlist for automatic groups; only groups listed here may be resolved to a specific model through automatic selection |
+| `data[].enable_groups` | Groups supported by the model; the request must match at least one |
+| `data[].model_ratio` | Input-token multiplier relative to the official baseline |
+| `data[].completion_ratio` | Output-token multiplier, applied as a multiple of `model_ratio` |
+| `data[].cache_ratio` | Multiplier for cache-hit input; `null` means the model does not distinguish cached input |
+| `data[].quota_type` | `0` for token-based billing; `1` for per-request billing |
+| `data[].model_price` | Price per request when `quota_type=1` |
+| `pricing_version` | Billing snapshot version, used as a client cache key; retrieve fresh data when it changes |
+
+## How callers select a group
+
+There are two ways to select a group in a request:
+
+1. **Omit `group` (recommended):** The server calculates "API key groups ∩ model `enable_groups`," then selects one using `auto_groups` and internal priority. This default workflow is sufficient for most callers.
+2. **Pass `group` explicitly:** Add a value such as `"group": "claude 特价"` to the request body. The group must belong to both the API key's available groups and the model's `enable_groups`; otherwise, the API returns `403 model_not_allowed`.
+
+```bash
+curl https://dimilinks.com/v1/chat/completions \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-opus-4-8",
+    "messages": [{"role": "user", "content": "Hello"}],
+    "group": "claude 特价"
+  }'
+```
+
+Specify `group` only when one API key has multiple eligible target groups and your application must consistently use one of them.
+
+## Billing formulas
+
+For token-billed models (`quota_type = 0`):
+
+```text
+input_cost  = input_tokens         × model_ratio                    × group_ratio
+output_cost = output_tokens        × model_ratio × completion_ratio × group_ratio
+cached_cost = cached_input_tokens  × model_ratio × cache_ratio      × group_ratio   (enabled when cache_ratio is not null)
+total_cost  = input_cost + output_cost + cached_cost
+```
+
+For per-request models (`quota_type = 1`):
+
+```text
+total_cost = model_price × group_ratio × n
+```
+
+`n` is the number of images or videos actually produced by the task. For image endpoints, it is the `n` field in the request body.
+
+## Cost examples
+
+**`claude-opus-4-8` in the `claude 特价` group**, with 1K input tokens and 500 output tokens:
+
+- `model_ratio = 2.5`, `completion_ratio = 5`, `group_ratio = 0.3`
+- `input  = 1000 × 2.5     × 0.3 = 750`
+- `output = 500  × 2.5 × 5 × 0.3 = 1875`
+- `total ≈ 2625` in internal system quota, converted to display currency using the account's `quota_per_unit`
+
+**Comparing `gpt-5.5` in the `default` and `open ai 特价` groups:**
+
+- `default`: `group_ratio = 1`; the full `model_ratio 2.5` × `completion_ratio 6` calculation applies.
+- `open ai 特价`: `group_ratio = 0.5`; the final cost is half the cost in the `default` group.
+
+**One asynchronous 2K image from `gpt-image-2`:**
+
+- The 2K tier has `model_price = 0.15`; `group_ratio` is either `gpt-image-2 = 1` or `default = 1`, so the request costs `0.15`. Read the separate `resolution_options` values for the 1K and 4K tiers instead of applying the 2K price.
+
+## Engineering recommendations
+
+- Retrieve `GET /api/pricing` at startup and build a `model_name → { enable_groups, model_ratio, completion_ratio, cache_ratio, quota_type, model_price }` index. Use `pricing_version` as the cache key.
+- When showing available groups for a model in the UI, read `data[].enable_groups` and the `usable_group` descriptions directly instead of maintaining a separate hardcoded map.
+- Cost estimates must account for all four values: `model_ratio`, `completion_ratio`, `cache_ratio`, and `group_ratio`. Omitting any of them produces an inaccurate estimate.
+- When you see `403 model_not_allowed`, first check whether the API key's available groups cover the target model's `enable_groups`. As a temporary workaround, set `group` explicitly to a group the current key actually has.

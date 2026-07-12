@@ -1,0 +1,52 @@
+---
+title: "モデル一覧"
+description: "現在の API Key で利用できるモデルを照会します。"
+openapi: "GET /models"
+icon: "boxes-stacked"
+---
+
+現在のキーで呼び出せるモデル一覧を取得します。レスポンスの `data[]` にはテキスト、画像、動画の各モデルが含まれ、`id` のプレフィックスで区別できます。
+
+## リクエスト
+
+```bash
+curl "https://dimilinks.com/v1/models" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY"
+```
+
+## レスポンス
+
+```json
+{
+  "object": "list",
+  "data": [
+    { "id": "claude-opus-4-8",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-sonnet-5",       "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "claude-haiku-4-5",      "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.5",               "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-5.6-terra",         "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "kimi-k2.7-code",        "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "qwen3.7-max",           "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "gpt-image-2",           "object": "model", "created": 1777080000, "owned_by": "" },
+    { "id": "grok-imagine-video",    "object": "model", "created": 1777080000, "owned_by": "" }
+  ]
+}
+```
+
+## 推奨モデル
+
+| 用途 | 推奨モデル |
+| --- | --- |
+| 汎用対話、文章作成、長文書の処理 | `claude-sonnet-5`、`claude-opus-4-8`、`gpt-5.5` |
+| 複雑な推論 / コーディング | `claude-opus-4-8`、`kimi-k2.7-code`、`gpt-5.6-terra` |
+| 低コストのバッチタスク | `claude-haiku-4-5`、`gpt-5.4-mini`、`deepseek-v4-flash` |
+| 画像生成 / 編集 | `gpt-image-2` |
+| 動画生成 | `grok-imagine-video` |
+
+## 利用上の推奨事項
+
+- モデル一覧はオンラインでの提供状況に応じて変わります。`/v1/models` を実行時の情報源とし、ハードコードしないでください。
+- 最新モデルと機能フィールドの選び方については、[モデルの選択と更新](/jp/api-reference/model-guide) を参照してください。
+- モデルはそれぞれ異なるグループに属し、グループが課金倍率を直接決定します。詳しくは [モデルグループと料金](/jp/api-reference/groups-and-pricing) を参照してください。
+- `403 model_not_allowed` が返された場合は、このキーに対象モデルの利用権限があるか確認してください。多くの場合、API Key の利用可能グループと対象モデルの `enable_groups` に共通項がありません。
+- テキストモデルはデフォルトで `/v1/chat/completions` または `/v1/messages`、画像は `/v1/images/*`、動画は `/v1/videos/*` を使用します。

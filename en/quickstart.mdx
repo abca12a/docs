@@ -1,0 +1,110 @@
+---
+title: "Quickstart"
+description: "Make your first Claude chat request in five minutes."
+icon: "rocket"
+---
+
+This page uses a single `chat/completions` request as a minimal example. Image and video generation use different endpoints; after completing this chat request, follow the links at the end of the page to integrate them.
+
+## 1. Prepare an API key
+
+Create a Bearer key in the console and save it as an environment variable. Send every request from your server; never place the key in browser code or a client application bundle.
+
+```bash
+export DIMILINKS_API_KEY="sk-..."
+```
+
+```http
+Authorization: Bearer <DIMILINKS_API_KEY>
+Content-Type: application/json
+```
+
+## 2. Start a Claude chat through the OpenAI-compatible endpoint
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "messages": [
+      {"role": "system", "content": "You are a concise assistant."},
+      {"role": "user", "content": "Explain Pluto in one sentence."}
+    ]
+  }'
+```
+
+Response (abridged):
+
+```json
+{
+  "id": "chatcmpl_xxx",
+  "object": "chat.completion",
+  "model": "claude-sonnet-5",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Pluto is a dwarf planet at the outer edge of the Solar System that was once classified as the ninth planet."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32,
+    "completion_tokens": 24,
+    "total_tokens": 56
+  }
+}
+```
+
+Change `model` to `gpt-5.5`, `gpt-5.6-terra`, `qwen3.7-max`, or another available text model to call it with the same key.
+
+## 3. Use the native Anthropic protocol (recommended for the Claude SDK / Claude Code)
+
+If you use the official Anthropic SDK or Claude Code, use the dedicated base URL `https://api-direct.dimilinks.com/`:
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/messages" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 256,
+    "messages": [
+      {"role": "user", "content": "Hello"}
+    ]
+  }'
+```
+
+See [Anthropic Messages](/en/api-reference/chat/anthropic-messages) for details.
+
+## 4. Enable streaming
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "Write a four-line poem about the deep sea."}
+    ]
+  }'
+```
+
+The server returns a sequence of incremental `data: {...}` events as `text/event-stream`, ending with `data: [DONE]`. See [Chat completions](/en/api-reference/chat/completions) for details.
+
+## 5. Next steps
+
+- List currently available models and select a recent model: [Model selection and updates](/en/api-reference/model-guide)
+- Connect Claude Code to Claude: [Claude Code](/en/api-reference/integrations/claude-code)
+- Connect Codex CLI to GPT: [Codex CLI](/en/api-reference/integrations/codex-cli)
+- Configure Cursor, Continue, Zed, Cherry Studio, and other IDEs: [VS Code and other IDEs](/en/api-reference/integrations/vscode-and-ides)
+- Import directly from the console into CC Switch or Cherry Studio: [One-click CC Switch / Cherry Studio import](/en/api-reference/integrations/ccswitch)
+- Submit an image task: [Create image generation](/en/api-reference/images/gpt-image-2/generation)
+- Submit a video task: [Create video generation](/en/api-reference/videos/grok-imagine-video/generation)
+- Retrieve task progress: [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks)

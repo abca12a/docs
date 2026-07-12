@@ -1,0 +1,71 @@
+---
+title: "DimiLinks API Documentation"
+description: "For developers: build Claude and GPT text conversations, create images with gpt-image-2, and generate videos with grok-imagine-video."
+icon: "sparkles"
+---
+
+DimiLinks provides a unified API that follows familiar OpenAI and Anthropic conventions. A single Bearer key lets you call text models including Claude and GPT, submit `gpt-image-2` image tasks, and submit `grok-imagine-video` video tasks.
+
+<Note>
+  We recommend using the asynchronous workflow for both image and video generation: submit a task, then poll the task endpoint for the result.
+</Note>
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/en/quickstart">
+    Use one curl command to verify authentication and make your first chat request.
+  </Card>
+  <Card title="Chat completions" icon="message" href="/en/api-reference/chat/completions">
+    Call GPT, Claude, and other text models through the OpenAI-compatible protocol.
+  </Card>
+  <Card title="Anthropic Messages" icon="brain" href="/en/api-reference/chat/anthropic-messages">
+    Use the native Anthropic protocol to call the full Claude model family.
+  </Card>
+  <Card title="Text to image / gpt-image-2" icon="image" href="/en/api-reference/images/gpt-image-2/generation">
+    Generate and edit images at 1K, 2K, or 4K, with asynchronous task retrieval.
+  </Card>
+  <Card title="Text to video / grok-imagine-video" icon="film" href="/en/api-reference/videos/grok-imagine-video/generation">
+    Generate 6- to 20-second videos from text or reference images.
+  </Card>
+  <Card title="IDE / CLI integrations" icon="laptop-code" href="/en/api-reference/integrations/ccswitch">
+    Connect Claude Code, Codex CLI, Cursor, Continue, Cherry Studio, and more.
+  </Card>
+</Columns>
+
+## Base URL
+
+DimiLinks provides two domains, one for each protocol family:
+
+| Protocol family | Base URL | Supported SDKs / clients |
+| --- | --- | --- |
+| OpenAI-compatible | `https://dimilinks.com/v1` | OpenAI SDK, Codex CLI, and the OpenAI providers in Cursor and Continue |
+| Native Anthropic | `https://api-direct.dimilinks.com/` | Anthropic SDK, Claude Code, and the Anthropic provider in Cherry Studio |
+
+Use `dimilinks.com` for OpenAI-style endpoints such as `/v1/chat/completions`, `/v1/images/*`, `/v1/videos/*`, and `/v1/models`. Use `api-direct.dimilinks.com` for native Anthropic endpoints such as `/v1/messages`. Both domains use the same Bearer key.
+
+## Recommended workflows
+
+```text
+POST https://dimilinks.com/v1/chat/completions          # Chat (OpenAI-compatible; recommended for coding)
+POST https://api-direct.dimilinks.com/v1/messages       # Chat (native Anthropic protocol)
+POST https://dimilinks.com/v1/images/generations?async=true  # Image: asynchronous submission
+POST https://dimilinks.com/v1/videos/generations             # Video: asynchronous submission (asynchronous by default)
+GET  https://dimilinks.com/v1/tasks/{task_id}                # Shared image / video task retrieval
+```
+
+## Common destinations
+
+| Capability | Page |
+| --- | --- |
+| Authentication | [Authentication](/en/api-reference/authentication) |
+| List models | [List models](/en/api-reference/models) |
+| Select recent models | [Model selection and updates](/en/api-reference/model-guide) |
+| Text chat (OpenAI-compatible) | [Chat completions](/en/api-reference/chat/completions) |
+| Text chat (native Anthropic) | [Anthropic Messages](/en/api-reference/chat/anthropic-messages) |
+| Generate images | [Create image generation](/en/api-reference/images/gpt-image-2/generation) |
+| Edit images | [Create image edit](/en/api-reference/images/gpt-image-2/edits) |
+| Generate videos | [Create video generation](/en/api-reference/videos/grok-imagine-video/generation) |
+| Retrieve tasks | [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks) |
+| Claude Code integration | [Claude Code](/en/api-reference/integrations/claude-code) |
+| Codex / Cursor / IDE integrations | [Codex CLI](/en/api-reference/integrations/codex-cli) · [VS Code and other IDEs](/en/api-reference/integrations/vscode-and-ides) |
+| One-click import into local clients | [CC Switch / Cherry Studio](/en/api-reference/integrations/ccswitch) |
+| Error format | [Errors](/en/api-reference/errors) |

@@ -1,0 +1,56 @@
+---
+title: "Errors"
+description: "DimiLinks API error response formats and common HTTP statuses."
+icon: "circle-exclamation"
+---
+
+DimiLinks error responses follow the upstream protocol in use:
+
+- Endpoints under `https://dimilinks.com/v1/*` (OpenAI-compatible) return the OpenAI-style `error` wrapper.
+- `https://api-direct.dimilinks.com/v1/messages` (native Anthropic) returns the native Anthropic format `{"type":"error","error":{...}}`.
+
+OpenAI style (from `dimilinks.com/v1`):
+
+```json
+{
+  "error": {
+    "message": "prompt must not be empty",
+    "type": "invalid_request_error",
+    "code": "invalid_request_error"
+  }
+}
+```
+
+Anthropic style (from `api-direct.dimilinks.com`):
+
+```json
+{
+  "type": "error",
+  "error": {
+    "type": "invalid_request_error",
+    "message": "messages must not be empty"
+  }
+}
+```
+
+## Common errors
+
+| HTTP | code | Meaning | Recommended caller action |
+| ---: | --- | --- | --- |
+| `400` | `invalid_request_error` / `invalid_reference_image` | Invalid parameters, an empty prompt, or an invalid reference image | Ask the user to correct the parameters |
+| `401` | `missing_api_key` / `invalid_api_key` | Missing or invalid key | Check the key configuration |
+| `402` | `insufficient_balance` | Insufficient balance | Ask the user to add funds or contact an administrator |
+| `403` | `model_not_allowed` | The current key cannot access the model, or its available groups do not intersect the model's `enable_groups` | Check the model allowlist; see [Model groups & pricing](/en/api-reference/groups-and-pricing) to change `group` or use a different key |
+| `404` | `not_found` | The task does not exist or does not belong to the current user | Stop polling |
+| `429` | `rate_limit_rpm` / `rate_limit_tpm` | Rate limit exceeded | Retry with backoff and reduce concurrency |
+| `500` | `internal_error` / `billing_error` | Internal service error | Record logs and retry later |
+| `502` / `503` | `upstream_error` / `service_unavailable` | The upstream route is temporarily unavailable | Allow the user to retry |
+
+## Handling recommendations
+
+- For `400`, show `error.message` directly so the user can adjust the input.
+- For `401` / `403`, ask the user to check the key or model permissions; do not retry silently.
+- For `429`, use exponential backoff and reduce concurrency; do not retry immediately at high frequency.
+- For `5xx` / `502` / `503`, allow retries, but record logs for upstream troubleshooting.
+- Stop polling immediately when a task endpoint returns `404` to avoid wasting requests.
+- If the same application code calls both domains, add a shared HTTP client abstraction that reads either `error.message` or `error.error.message` instead of duplicating compatibility logic in every caller.

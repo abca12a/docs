@@ -1,0 +1,99 @@
+---
+title: "動画生成を作成"
+description: "grok-imagine-video で 6〜20 秒の短い動画を生成します。テキストと参照画像の 2 つのモードに対応しています。"
+openapi: "POST /videos/generations"
+icon: "film"
+---
+
+`/v1/videos/generations` を送信すると、すぐに `task_id` が返ります。生成時間は動画の長さと解像度によって異なり、通常は 1〜5 分です。[`/v1/tasks/{task_id}`](/jp/api-reference/videos/grok-imagine-video/tasks) でタスクのステータスをポーリングしてください。
+
+<Note>
+  現在、動画 API は `grok-imagine-video` モデルのみに対応しています。推論と課金には Grok チャネルの特別価格が適用されます。
+</Note>
+
+## リクエスト URL
+
+```http
+POST https://dimilinks.com/v1/videos/generations
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## テキストから動画を生成する例
+
+```bash
+curl "https://dimilinks.com/v1/videos/generations" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-video",
+    "prompt": "ネオンカラーのクラゲの群れが深海をゆっくり漂い、映画のような光が差し込んでいる",
+    "seconds": "6",
+    "size": "1280x720",
+    "resolution_name": "720p",
+    "preset": "normal"
+  }'
+```
+
+成功時のレスポンス：
+
+```json
+{
+  "data": {
+    "id": "video_xxx",
+    "task_id": "video_xxx",
+    "status": "queued"
+  }
+}
+```
+
+`task_id` を取得したら、[動画タスクを取得](/jp/api-reference/videos/grok-imagine-video/tasks)を呼び出して照会してください。
+
+## 参照画像から動画を生成する例
+
+参照画像は、先に `data:image/...;base64,...` 形式の Data URL に変換する必要があります。ブラウザの `blob:` URL は直接指定できません。サーバー側でバイナリを読み込み、エンコードしてから指定してください。
+
+```bash
+curl "https://dimilinks.com/v1/videos/generations" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "grok-imagine-video",
+    "prompt": "人物の主体を維持しながら、カメラを主体の周囲で一周させる",
+    "seconds": "10",
+    "size": "1280x720",
+    "resolution_name": "720p",
+    "preset": "normal",
+    "input_reference": [
+      "data:image/png;base64,iVBORw0KGgo..."
+    ]
+  }'
+```
+
+## パラメータ
+
+| パラメータ | 型 | 必須 | 説明 |
+| --- | --- | --- | --- |
+| `model` | string | はい | 現在は `grok-imagine-video` 固定です。 |
+| `prompt` | string | はい | 動画内容の説明。最大 2500 文字。 |
+| `seconds` | string | はい | 長さ。`"6"` / `"10"` / `"12"` / `"16"` / `"20"` から選択し、単位は秒です。 |
+| `size` | string | はい | フレームサイズ：`1280x720`（16:9）、`720x1280`（9:16）、`1024x1024`（1:1）。 |
+| `resolution_name` | string | はい | 解像度プラン：`720p`（HD）または `480p`（SD）。 |
+| `preset` | string | はい | スタイルプリセット：`normal`（標準）、`fun`（楽しさを強調）、`spicy`（高強度）、`custom`（カスタムプロンプト）。 |
+| `input_reference` | string[] | いいえ | 参照画像の Data URL 配列。最大 7 枚。指定すると参照画像から動画を生成するモードになります。 |
+| `group` | string | いいえ | チャネルグループ。コンソールからの呼び出しでは `default` が指定されます。サードパーティーからの呼び出しでは通常、空のままにします。 |
+
+## 長さと解像度の組み合わせ
+
+- `720p` は最終成果物に適しています。`480p` は生成が速く、プレビューに適しています。
+- 動画が長いほど生成時間と単価が高くなります。まずは `seconds: "6"` でフロー全体を確認することを推奨します。
+- 同じプロンプトを `9:16` または `1:1` に変更する場合は、被写体が切れないよう、画面内での位置を説明に含めることを推奨します。
+
+## エラー処理
+
+動画 API も OpenAI 形式の `error` ラッパーを使用します。一般的なエラーについては[エラー](/jp/api-reference/errors)を参照してください。参照画像に関する `400` エラーが表示された場合は、次の点を確認してください。
+
+- 参照画像が PNG / JPEG / WebP 形式であること。
+- Data URL を使用していること（`blob:` や通常の HTTP URL ではないこと）。
+- 参照画像 1 枚あたりのサイズが 10 MB 未満であること。
+- 参照画像が 7 枚以下であること。

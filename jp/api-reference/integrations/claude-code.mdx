@@ -1,0 +1,57 @@
+---
+title: "Claude Code の連携"
+description: "Anthropic 公式の Claude Code CLI から DimiLinks の Claude シリーズを呼び出します。"
+icon: "robot"
+---
+
+[Claude Code](https://docs.claude.com/en/docs/claude-code) は Anthropic 公式の CLI で、デフォルトでは Anthropic のゲートウェイに接続します。2 つの環境変数を設定するだけで、DimiLinks 経由に切り替えられます。
+
+## ワンクリックインポート（推奨）
+
+最も速い方法は [CC Switch](https://github.com/farion1231/cc-switch) を使用することです。
+
+1. CC Switch をインストールしてログインします。
+2. DimiLinks コンソールの「API キー」ページで、Claude モデルに限定したキーの「CC Switch にインポート」をクリックします。
+3. CC Switch に `Claude` という名前の provider が自動的に追加され、base URL は `https://api-direct.dimilinks.com/` に設定されます。
+4. Claude Code を起動する前に `cc-switch use <provider>` を実行すると、DimiLinks に切り替わります。
+
+deep link の具体的な構造については、[CC Switch / Cherry Studio へのワンクリックインポート](/jp/api-reference/integrations/ccswitch)を参照してください。
+
+## 環境変数を手動設定する
+
+CC Switch を使用しない場合は、環境変数を直接設定できます。
+
+```bash
+export ANTHROPIC_BASE_URL="https://api-direct.dimilinks.com/"
+export ANTHROPIC_AUTH_TOKEN="sk-..."
+```
+
+続いて Claude Code を起動します。
+
+```bash
+claude
+```
+
+変数を shell の設定ファイル（`~/.zshrc`、`~/.bashrc`）に書き込むと、設定が永続化されます。異なるキー用に複数の設定を用意する場合は、[direnv](https://direnv.net/) や [mise](https://mise.jdx.dev/) などのツールを使い、ディレクトリごとに環境変数を注入できます。
+
+<Note>
+  Claude Code は OpenAI 互換エンドポイントを使用しません。必ず `https://api-direct.dimilinks.com/` を指定し、`dimilinks.com/v1` は指定しないでください。
+</Note>
+
+## 推奨モデル
+
+| 用途 | モデル ID |
+| --- | --- |
+| 汎用コーディング / リファクタリング | `claude-sonnet-5` |
+| 高度な推論 / 複雑なタスク | `claude-opus-4-8` |
+| 大きなコンテキストを使用する長文ドキュメント | `claude-opus-4-8` |
+| 低コストの一括処理 | `claude-haiku-4-5` |
+
+起動後、`/model` コマンドで切り替えられます。モデル ID は[モデル一覧](/jp/api-reference/models)のレスポンスと同じです。
+
+## よくある問題
+
+- **`401 Invalid token`**：環境変数が反映されていないか、キーが間違っています。`echo $ANTHROPIC_AUTH_TOKEN` で確認してください。
+- **`403 model_not_allowed`**：現在のキーの「モデル制限」で、使用する Claude モデルが許可されていません。コンソールでキーの設定を変更してください。
+- **リクエストがタイムアウトし続ける**：[認証](/jp/api-reference/authentication)にある簡単な `curl` の例で切り分けてください。`curl` は成功するのに Claude Code が接続できない場合は、ローカルプロキシまたは社内 VPN によってブロックされている可能性があります。
+- **Anthropic 公式アカウントも併用したい**：CC Switch で複数の provider を管理し、実行前に `cc-switch use anthropic` を実行すれば、ワンクリックで元に戻せます。

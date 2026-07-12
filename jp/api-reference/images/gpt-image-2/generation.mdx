@@ -1,0 +1,151 @@
+---
+title: "画像生成を作成"
+description: "gpt-image-2 で画像を生成します。非同期タスクと JSON 形式の参照画像に対応しています。"
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+`gpt-image-2` は DimiLinks の画像生成モデルで、テキストからの画像生成と画像からの画像生成に対応しています。`image_urls` フィールドで最大 9 枚の参照画像を指定できます。
+
+<Note>
+  `?async=true` の追加を推奨します。同期モードでは画像の完成までレスポンスが返らないため、ゲートウェイやクライアントのタイムアウトによって中断されやすくなります。
+</Note>
+
+## リクエスト URL
+
+```http
+POST https://dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## テキストから画像を生成する例
+
+```bash
+curl "https://dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "サイバーパンク風の猫のポスター、ネオンライト、映画のような雰囲気",
+    "n": 1,
+    "size": "16:9",
+    "resolution": "2k",
+    "output_format": "png"
+  }'
+```
+
+## 画像から画像を生成する例
+
+```bash
+curl "https://dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2",
+    "prompt": "人物の主体を維持したまま、海辺の夕暮れを背景にした映画風ポートレートに変更する",
+    "n": 1,
+    "size": "16:9",
+    "resolution": "4k",
+    "image_urls": [
+      "https://example.com/reference.png"
+    ]
+  }'
+```
+
+## 非同期レスポンス
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": []
+}
+```
+
+`task_id` を取得したら、[画像タスクを取得](/jp/api-reference/images/gpt-image-2/tasks)を呼び出して結果を確認してください。
+
+## 同期レスポンス
+
+同期モードでは、画像の完成後に次のレスポンスが返ります。
+
+```json
+{
+  "created": 1777080000,
+  "task_id": "img_xxx",
+  "data": [
+    {
+      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "file_id": "file_xxx"
+    }
+  ]
+}
+```
+
+## 結果フィールドの説明
+
+`data[].url` は必ずしも公開画像 URL とは限りません。次の 3 形式すべてに対応してください。
+
+- `/p/img/...`：相対パスです。表示またはダウンロードする前に `https://dimilinks.com/p/img/...` の形式に補完してください。このパスには Bearer は不要で、URL 自体に署名と有効期限が含まれています。
+- `https://...`：完全な画像 URL です。そのままリクエストまたは表示できます。
+- `data:image/...;base64,...`：Data URL で、文字列自体が画像データです。Web ページではそのまま `<img src>` に指定できます。サーバー側のスクリプトでファイルとして保存する場合は、先に base64 をデコードしてください。
+
+## パラメータ
+
+| パラメータ | 型 | デフォルト値 | 説明 |
+| --- | --- | --- | --- |
+| `model` | string | `gpt-image-2` | モデル名。 |
+| `prompt` | string | 必須 | 画像生成または編集用のプロンプト。 |
+| `n` | integer | `1` | 1 回に生成する画像数。`1k` プランでは `1` 固定、`2k` / `4k` プランでは最大 `4`。 |
+| `size` | string | `1024x1024` | `1:1`、`16:9` などのアスペクト比、または `WxH` 形式の具体的なピクセル数（例：`3840x2160`）。 |
+| `resolution` | string | 空 | 解像度プラン：`1k` / `2k` / `4k`。 |
+| `output_format` | string | 空 | 出力形式：`png` / `jpeg` / `webp`。 |
+| `output_compression` | integer | 空 | 出力の圧縮品質。`jpeg` または `webp` と組み合わせて使用します。 |
+| `background` | string | 空 | 背景の設定：`auto` / `transparent` / `opaque`。 |
+| `moderation` | string | 空 | コンテンツモデレーションの強度：`auto` / `low`。 |
+| `user` | string | 空 | 監査に使用する呼び出し元のユーザー識別子。 |
+| `wait_for_result` | boolean | `true` | `false` を指定すると非同期で送信します。 |
+| `image_urls` | string \| array \| object | 空 | JSON 形式の参照画像フィールド。最大 9 枚。 |
+| `mask_url` | string | 空 | 部分的な再描画に使用するマスク。少なくとも 1 枚の参照画像と組み合わせる必要があります。 |
+| `response_format` | string | 空 | `b64_json` を指定すると結果が base64 で直接返ります。デフォルトでの有効化は推奨しません。 |
+
+## 非同期モードを有効にする方法
+
+次のいずれかを指定すると、非同期モードになります。
+
+- クエリパラメータ：`?async=true`
+- クエリパラメータ：`?wait_for_result=false`
+- リクエストヘッダー：`Prefer: respond-async`
+- リクエストボディ：`"wait_for_result": false`
+
+## 参照画像の形式
+
+`image_urls` の使用を推奨します。
+
+```json
+{
+  "image_urls": [
+    "https://example.com/ref.png",
+    "data:image/png;base64,iVBORw0KGgo..."
+  ]
+}
+```
+
+`reference_images`、`images`、`image`、`image_url`、`input_image`、`input_images` にも対応しています。
+
+## 参照画像の制限
+
+- 1 回のリクエストで指定できる参照画像は最大 9 枚です。
+- 参照画像 1 枚あたりの最大サイズは 20 MB です。
+- HTTP(S) URL、Data URL、純粋な base64 に対応しています。
+- ブラウザの `blob:` URL は直接指定できません。先に自分のサーバーへアップロードするか、Data URL に変換してください。
+
+## 解像度プラン別の機能差
+
+| プラン | 1 回あたりの最大 `n` | 標準的な所要時間 | 説明 |
+| --- | ---: | ---: | --- |
+| `1k` | 1 | 約 60 秒 | エントリープラン。プレビューや低コストの一括生成に適しています。 |
+| `2k` | 4 | 約 120 秒 | 推奨プラン。ほとんどの業務用途の画像生成に適しています。 |
+| `4k` | 4 | 約 180 秒 | 高忠実度プラン。`21:9` など一部の極端なアスペクト比にも対応しています。 |
+
+具体的な単価はコンソールの「価格」ページを確認してください。料金はプランごとに個別に計算されます。

@@ -1,0 +1,185 @@
+---
+title: "Create chat completion"
+description: "Call Claude, GPT, and other text models through the OpenAI-compatible protocol."
+openapi: "POST /chat/completions"
+icon: "message"
+---
+
+`/v1/chat/completions` is the recommended DimiLinks chat endpoint. Its request and response structures match the official OpenAI endpoint, so you can use the OpenAI SDK directly. Set `model` to the name of a text model available to the current key to call Claude, GPT, or another model.
+
+## Request URL
+
+```http
+POST https://dimilinks.com/v1/chat/completions
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## Basic example
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "messages": [
+      {"role": "system", "content": "You are a concise assistant."},
+      {"role": "user", "content": "Explain Pluto in one sentence."}
+    ]
+  }'
+```
+
+Response (abridged):
+
+```json
+{
+  "id": "chatcmpl_xxx",
+  "object": "chat.completion",
+  "created": 1777080000,
+  "model": "claude-sonnet-5",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "..." },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32,
+    "completion_tokens": 24,
+    "total_tokens": 56
+  }
+}
+```
+
+## Streaming
+
+Add `"stream": true` to the request. The server returns incremental chunks as `text/event-stream` and ends with `data: [DONE]`.
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -N \
+  -d '{
+    "model": "gpt-5.5",
+    "stream": true,
+    "messages": [
+      {"role": "user", "content": "Write a four-line poem about the deep sea."}
+    ]
+  }'
+```
+
+Each event has this structure:
+
+```text
+data: {"id":"chatcmpl_xxx","object":"chat.completion.chunk","model":"gpt-5.5",
+"choices":[{"index":0,"delta":{"content":"Far"},"finish_reason":null}]}
+```
+
+## Parameters
+
+The table lists common fields. Any unlisted field is passed through to the upstream provider when the model supports it.
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `model` | string | Required | Model ID, such as `claude-sonnet-5`, `claude-opus-4-8`, `gpt-5.5`, `gpt-5.6-terra`, or `qwen3.7-max`. |
+| `messages` | array | Required | Message array containing at least one `role=user` item. Supported roles are `system` / `user` / `assistant` / `tool`. |
+| `stream` | boolean | `false` | When `true`, returns SSE streaming chunks. |
+| `temperature` | number | Model default | Sampling temperature from 0 to 2. |
+| `top_p` | number | Model default | Nucleus sampling probability from 0 to 1. |
+| `max_tokens` | integer | Model default | Maximum tokens in one response; we recommend setting it explicitly for Claude models. |
+| `stop` | string \| string[] | Empty | Stop generation when one of these sequences is matched. |
+| `presence_penalty` | number | `0` | Penalty for repeating topics, from -2 to 2. |
+| `frequency_penalty` | number | `0` | Penalty for repeating words, from -2 to 2. |
+| `tools` | array | Empty | Tool definitions compatible with OpenAI Tool Calling. |
+| `tool_choice` | string \| object | `auto` | Controls whether a specific tool must be called. |
+| `response_format` | object | Empty | Requests JSON output, for example `{ "type": "json_object" }`. |
+| `user` | string | Empty | End-user identifier for auditing and rate limiting. |
+
+## Recommended models
+
+| Scenario | Models |
+| --- | --- |
+| General chat / long documents | `claude-sonnet-5`, `claude-opus-4-8`, `gpt-5.5` |
+| Complex reasoning / coding | `claude-opus-4-8`, `kimi-k2.7-code`, `gpt-5.6-terra` |
+| Chinese-language and general tasks | `qwen3.7-max`, `glm-5.2`, `MiniMax-M3` |
+| Low-cost batch tasks | `claude-haiku-4-5`, `gpt-5.4-mini`, `deepseek-v4-flash` |
+| Multimodal vision | `gpt-image-2` is dedicated to image generation. Visual chat support varies by model; first inspect `input_modalities` from `/v1/models`. |
+
+## Call with the OpenAI SDK
+
+Python:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-...",
+    base_url="https://dimilinks.com/v1",
+)
+
+response = client.chat.completions.create(
+    model="claude-sonnet-5",
+    messages=[
+        {"role": "system", "content": "You are a rigorous assistant."},
+        {"role": "user", "content": "Explain the Fourier transform."},
+    ],
+    max_tokens=1024,
+)
+
+print(response.choices[0].message.content)
+```
+
+Node.js:
+
+```ts
+import OpenAI from 'openai'
+
+const client = new OpenAI({
+  apiKey: process.env.DIMILINKS_API_KEY,
+  baseURL: 'https://dimilinks.com/v1',
+})
+
+const response = await client.chat.completions.create({
+  model: 'gpt-5.5',
+  messages: [{ role: 'user', content: 'Hello' }],
+})
+```
+
+## Tool calling
+
+```bash
+curl "https://dimilinks.com/v1/chat/completions" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "messages": [
+      {"role": "user", "content": "Check the current weather in Tokyo."}
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Retrieve the current weather for a city",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "city": {"type": "string"}
+            },
+            "required": ["city"]
+          }
+        }
+      }
+    ]
+  }'
+```
+
+When the model returns `tool_calls`, execute the tool, add its result to `messages` as a `role=tool` message, and call the endpoint again.
+
+## Error handling
+
+Failed requests return the OpenAI-style `error` wrapper. See [Errors](/en/api-reference/errors). If an upstream connection closes during a streaming request, the final event may not be `[DONE]`; treat a closed connection as a retryable error as well.
