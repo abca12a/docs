@@ -14,11 +14,13 @@ icon: "share-from-square"
 
 コンソールは、キーの「モデル制限」とグループに基づいて対象 provider を自動的に推奨します。
 
+すべてのリクエストは `api-direct.dimilinks.com` を使用します。ワンクリックインポートでは、対象クライアントが API パスを自動追加するかどうかに応じて、`/v1` を含む形式または含まない形式を正しく設定します。
+
 | キーのモデル | 対象 provider | base URL |
 | --- | --- | --- |
 | Claude シリーズのみ | Anthropic 形式 | `https://api-direct.dimilinks.com/` |
 | Gemini シリーズのみ | Gemini 形式 | `https://api-direct.dimilinks.com/` |
-| その他（GPT / Grok / モデル制限なし） | OpenAI 形式 | `https://dimilinks.com/v1` |
+| その他（GPT / Grok / モデル制限なし） | OpenAI 形式 | `https://api-direct.dimilinks.com/v1` |
 
 インポートに失敗する場合は、次の原因が考えられます。
 
@@ -47,7 +49,7 @@ ccswitch://v1/import?resource=provider
 | `app` | `claude` / `codex` / `gemini`。デフォルトではキーのモデルファミリーに基づいて推奨され、インポート前に手動で切り替えられます |
 | `name` | CC Switch 内に表示される provider 名 |
 | `apiKey` | DimiLinks Bearer キー |
-| `endpoint` | base URL（対象ツールに応じて `https://dimilinks.com/v1` または `https://api-direct.dimilinks.com`。末尾のスラッシュは含みません） |
+| `endpoint` | base URL（対象ツールに応じて `https://api-direct.dimilinks.com/v1` または `https://api-direct.dimilinks.com`。末尾のスラッシュは含みません） |
 | `model` | キーで 1 つのモデルのみが許可されている場合に付加されます。指定されていない場合は、ユーザーが CC Switch 内で選択します |
 
 ## Cherry Studio deep link の構造
@@ -76,7 +78,7 @@ cherrystudio://providers/api-keys?v=1&data=<urlsafe-base64>
 
 | クライアント | 選択するタイプ | base URL | キー |
 | --- | --- | --- | --- |
-| Cherry Studio | OpenAI | `https://dimilinks.com/v1` | DimiLinks Bearer |
+| Cherry Studio | OpenAI | `https://api-direct.dimilinks.com/v1` | DimiLinks Bearer |
 | Cherry Studio | Anthropic | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
 | Cherry Studio | Gemini | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
 | CC Switch | Codex / Claude / Gemini | 上記と同じ | 上記と同じ |

@@ -22,7 +22,7 @@ Content-Type: application/json
 ## 2. 调用 Claude 对话（OpenAI 兼容入口）
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -63,7 +63,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
 
 ## 3. 用 Anthropic 原生协议（推荐 Claude SDK / Claude Code）
 
-如果你在用 Anthropic 官方 SDK 或 Claude Code，请用独立的 base URL `https://api-direct.dimilinks.com/`：
+完整请求仍然发送到统一地址下的 `/v1/messages`。如果你使用 Anthropic 官方 SDK 或 Claude Code，请把客户端的 `base_url` 配置为 `https://api-direct.dimilinks.com/`，由客户端自动追加 `/v1/messages`：
 
 ```bash
 curl "https://api-direct.dimilinks.com/v1/messages" \
@@ -84,7 +84,7 @@ curl "https://api-direct.dimilinks.com/v1/messages" \
 ## 4. 切换到流式输出
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

@@ -11,7 +11,7 @@ icon: "terminal"
 DimiLinks 控制台支持把 GPT 类密钥一键推到 [CC Switch](https://github.com/farion1231/cc-switch)：
 
 1. 在「API 密钥」页对一把不限定模型（或限定为 GPT 系列）的密钥点「导入到 CC Switch」。
-2. CC Switch 会自动新增 `Codex` provider，base URL 写为 `https://dimilinks.com/v1`。
+2. CC Switch 会自动新增 `Codex` provider，base URL 写为 `https://api-direct.dimilinks.com/v1`。
 3. Codex 启动前 `cc-switch use codex`，即可让 Codex 用 DimiLinks 走 OpenAI 兼容路由。
 
 deep link 结构见 [CC Switch / Cherry Studio 一键导入](/api-reference/integrations/ccswitch)。
@@ -23,7 +23,7 @@ deep link 结构见 [CC Switch / Cherry Studio 一键导入](/api-reference/inte
 ```toml
 [providers.dimilinks]
 name = "DimiLinks"
-base_url = "https://dimilinks.com/v1"
+base_url = "https://api-direct.dimilinks.com/v1"
 api_key = "sk-..."
 default_model = "gpt-5.5"
 ```
@@ -40,7 +40,7 @@ codex
 ## 用环境变量临时切换
 
 ```bash
-export OPENAI_BASE_URL="https://dimilinks.com/v1"
+export OPENAI_BASE_URL="https://api-direct.dimilinks.com/v1"
 export OPENAI_API_KEY="sk-..."
 codex
 ```
@@ -55,11 +55,11 @@ codex
 | 通用对话 / 长上下文 | `gpt-5.5`、`gpt-5.6-luna` |
 | 低成本批量 | `gpt-5.4-mini` |
 
-模型清单以 `GET https://dimilinks.com/v1/models` 为准。
+模型清单以 `GET https://api-direct.dimilinks.com/v1/models` 为准。
 
 ## 常见问题
 
 - **`401 Invalid token`**：检查 `api_key` / `OPENAI_API_KEY` 是否被 shell 引号截断。
-- **`404`**：base URL 写成 `https://dimilinks.com/`（缺 `/v1`）会触发；OpenAI 兼容入口必须带 `/v1`。
+- **`404`**：base URL 写成 `https://api-direct.dimilinks.com/`（缺 `/v1`）会触发；OpenAI 兼容入口必须带 `/v1`。
 - **`429 rate_limit_rpm`**：降低并发；`OPENAI_MAX_RETRIES` 默认就会退避，但可以再加大。
 - **想同时保留 OpenAI 官方账号**：在 `config.toml` 里多保留一个 provider 即可，按需 `provider use` 切换。

@@ -4,14 +4,14 @@ description: "Fundamentals and routing overview for the unified DimiLinks API."
 icon: "terminal"
 ---
 
-## Base URL
+## Request URL
 
-Choose the domain for the protocol family you use. Both domains share the same Bearer key:
+All public API requests use `api-direct.dimilinks.com`. The recommended request URL for model APIs is `https://api-direct.dimilinks.com/v1`, and all authenticated model endpoints share the same Bearer key.
 
-| Protocol family | Base URL | Primary routes |
+| Client type | Base URL to configure | Behavior |
 | --- | --- | --- |
-| OpenAI-compatible | `https://dimilinks.com/v1` | `/chat/completions`, `/models`, `/images/*`, `/videos/*`, `/tasks/{id}` |
-| Native Anthropic | `https://api-direct.dimilinks.com/` | `/v1/messages` |
+| OpenAI-compatible SDK or generic HTTP client | `https://api-direct.dimilinks.com/v1` | Append routes such as `/chat/completions`, `/models`, and `/images/*` directly |
+| Official Anthropic SDK or Claude Code | `https://api-direct.dimilinks.com/` | The client appends `/v1/messages`; do not include `/v1` twice |
 
 See [Authentication](/en/api-reference/authentication) for details.
 
@@ -19,15 +19,15 @@ See [Authentication](/en/api-reference/authentication) for details.
 
 | Method | Full URL | Description |
 | --- | --- | --- |
-| `GET` | `https://dimilinks.com/v1/models` | List the models available to the current key |
-| `POST` | `https://dimilinks.com/v1/chat/completions` | OpenAI-compatible chat for GPT; also supports Claude and other text models through the OpenAI protocol |
+| `GET` | `https://api-direct.dimilinks.com/v1/models` | List the models available to the current key |
+| `POST` | `https://api-direct.dimilinks.com/v1/chat/completions` | OpenAI-compatible chat for GPT; also supports Claude and other text models through the OpenAI protocol |
 | `POST` | `https://api-direct.dimilinks.com/v1/messages` | Native Anthropic protocol; recommended for the Claude SDK and Claude Code |
-| `POST` | `https://dimilinks.com/v1/images/generations` | Text-to-image generation with JSON reference-image extensions |
-| `POST` | `https://dimilinks.com/v1/images/edits` | Multipart image-to-image generation and editing |
-| `POST` | `https://dimilinks.com/v1/videos/generations` | Text-to-video and reference-image-to-video generation |
-| `GET` | `https://dimilinks.com/v1/tasks/{task_id}` | Shared image and video task retrieval |
-| `GET` | `https://dimilinks.com/v1/videos/{task_id}/content` | Direct video task result (authentication required) |
-| `GET` | `https://dimilinks.com/p/img/{task_id}/{idx}` | Signed image URL (no Bearer token required; the signature is embedded in the URL) |
+| `POST` | `https://api-direct.dimilinks.com/v1/images/generations` | Text-to-image generation with JSON reference-image extensions |
+| `POST` | `https://api-direct.dimilinks.com/v1/images/edits` | Multipart image-to-image generation and editing |
+| `POST` | `https://api-direct.dimilinks.com/v1/videos/generations` | Text-to-video and reference-image-to-video generation |
+| `GET` | `https://api-direct.dimilinks.com/v1/tasks/{task_id}` | Shared image and video task retrieval |
+| `GET` | `https://api-direct.dimilinks.com/v1/videos/{task_id}/content` | Direct video task result (authentication required) |
+| `GET` | `https://api-direct.dimilinks.com/p/img/{task_id}/{idx}` | Signed image URL (no Bearer token required; the signature is embedded in the URL) |
 
 ## Protocol conventions
 
@@ -38,9 +38,9 @@ See [Authentication](/en/api-reference/authentication) for details.
 ## Recommended asynchronous workflow
 
 ```text
-POST https://dimilinks.com/v1/images/generations?async=true   # Submit an image task
-POST https://dimilinks.com/v1/videos/generations              # Submit a video task (always asynchronous)
-GET  https://dimilinks.com/v1/tasks/{task_id}                 # Shared task retrieval
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true   # Submit an image task
+POST https://api-direct.dimilinks.com/v1/videos/generations              # Submit a video task (always asynchronous)
+GET  https://api-direct.dimilinks.com/v1/tasks/{task_id}                 # Shared task retrieval
 ```
 
 Image and video generation times vary. The asynchronous workflow avoids long-lived connections, gateway timeouts, and tasks being lost when a page closes.

@@ -14,7 +14,7 @@ icon: "film"
 ## 请求地址
 
 ```http
-POST https://dimilinks.com/v1/videos/generations
+POST https://api-direct.dimilinks.com/v1/videos/generations
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -22,7 +22,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## 文生视频示例
 
 ```bash
-curl "https://dimilinks.com/v1/videos/generations" \
+curl "https://api-direct.dimilinks.com/v1/videos/generations" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ curl "https://dimilinks.com/v1/videos/generations" \
 参考图必须先转成 `data:image/...;base64,...` Data URL；浏览器侧的 `blob:` URL 不能直接传，需要先在服务端读到二进制再编码。
 
 ```bash
-curl "https://dimilinks.com/v1/videos/generations" \
+curl "https://api-direct.dimilinks.com/v1/videos/generations" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

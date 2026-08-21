@@ -10,7 +10,7 @@ icon: "code"
 
 | プロトコルファミリー | base URL | 適した用途 |
 | --- | --- | --- |
-| OpenAI 互換 | `https://dimilinks.com/v1` | GPT / その他の互換モデル / Claude も呼び出し可能（OpenAI プロトコル） |
+| OpenAI 互換 | `https://api-direct.dimilinks.com/v1` | GPT / その他の互換モデル / Claude も呼び出し可能（OpenAI プロトコル） |
 | Anthropic ネイティブ | `https://api-direct.dimilinks.com/` | Claude SDK / Claude Code 形式 |
 
 API key には、DimiLinks コンソールで作成した Bearer キーを使用します。
@@ -26,7 +26,7 @@ API key には、DimiLinks コンソールで作成した Bearer キーを使用
       "title": "DimiLinks GPT-5.5",
       "provider": "openai",
       "model": "gpt-5.5",
-      "apiBase": "https://dimilinks.com/v1",
+      "apiBase": "https://api-direct.dimilinks.com/v1",
       "apiKey": "sk-..."
     },
     {
@@ -49,7 +49,7 @@ API key には、DimiLinks コンソールで作成した Bearer キーを使用
 | フィールド | 値 |
 | --- | --- |
 | Provider | `OpenAI Compatible` |
-| Base URL | `https://dimilinks.com/v1` |
+| Base URL | `https://api-direct.dimilinks.com/v1` |
 | API Key | DimiLinks Bearer |
 | Model ID | 例：`claude-sonnet-5`、`gpt-5.5` |
 
@@ -59,7 +59,7 @@ Anthropic ネイティブプロトコルを使用する場合は、Provider に 
 
 Cursor → Settings → Models → "OpenAI API Key"：
 
-- API Base URL：`https://dimilinks.com/v1`
+- API Base URL：`https://api-direct.dimilinks.com/v1`
 - API Key：DimiLinks Bearer
 - 続いて "Override OpenAI Models" に、使用するモデル ID（例：`gpt-5.5`、`claude-sonnet-5`）を追加します。
 
@@ -73,7 +73,7 @@ Cursor → Settings → Models → "OpenAI API Key"：
 {
   "language_models": {
     "openai": {
-      "api_url": "https://dimilinks.com/v1",
+      "api_url": "https://api-direct.dimilinks.com/v1",
       "available_models": [
         { "name": "claude-sonnet-5", "max_tokens": 200000 },
         { "name": "gpt-5.5", "max_tokens": 128000 }
@@ -93,7 +93,7 @@ API key は Zed の設定画面で入力します（または `OPENAI_API_KEY` �
 
 この種のセルフホスト型フロントエンドには通常、「OpenAI 互換」provider があります。次のように設定します。
 
-- API URL：`https://dimilinks.com/v1`
+- API URL：`https://api-direct.dimilinks.com/v1`
 - API Key：DimiLinks Bearer
 - Model：例：`claude-sonnet-5`、`gpt-5.5`、`qwen3.7-max`
 
@@ -101,7 +101,7 @@ Claude 専用のエンドポイントとして使用する場合は、「Anthrop
 
 ## よくある問題
 
-- **`https://dimilinks.com/` を指定して `/v1` が抜けている**：OpenAI 互換クライアントでは `404` になります。`/v1` を追加してください。
+- **`https://api-direct.dimilinks.com/` を指定して `/v1` が抜けている**：OpenAI 互換クライアントでは `404` になります。`/v1` を追加してください。
 - **Claude モデルを OpenAI プロトコルで使用する**：使用できますが、一部の高度な機能（Tool Use、思考モード）は Anthropic ネイティブプロトコルでのみ有効です。これらの機能が必要な場合は、Anthropic provider に切り替えてください。
 - **HTTPS 証明書エラー**：システムレベルで標準 CA 証明書を信頼してください。DimiLinks に追加のプライベート証明書は必要ありません。
 - **大きなファイルのコンテキスト / 視覚入力**：対応状況はモデルによって異なります。まず[モデル一覧](/jp/api-reference/models)で `input_modalities`、`output_modalities` を確認してください。

@@ -31,25 +31,24 @@ DimiLinks provides a unified API that follows familiar OpenAI and Anthropic conv
   </Card>
 </Columns>
 
-## Base URL
+## Request URL
 
-DimiLinks provides two domains, one for each protocol family:
+All DimiLinks model APIs use this request URL:
 
-| Protocol family | Base URL | Supported SDKs / clients |
-| --- | --- | --- |
-| OpenAI-compatible | `https://dimilinks.com/v1` | OpenAI SDK, Codex CLI, and the OpenAI providers in Cursor and Continue |
-| Native Anthropic | `https://api-direct.dimilinks.com/` | Anthropic SDK, Claude Code, and the Anthropic provider in Cherry Studio |
+```text
+https://api-direct.dimilinks.com/v1
+```
 
-Use `dimilinks.com` for OpenAI-style endpoints such as `/v1/chat/completions`, `/v1/images/*`, `/v1/videos/*`, and `/v1/models`. Use `api-direct.dimilinks.com` for native Anthropic endpoints such as `/v1/messages`. Both domains use the same Bearer key.
+Use this value directly as the base URL for OpenAI-compatible APIs. Native clients such as the official Anthropic SDK and Claude Code append `/v1/messages` automatically, so configure their `base_url` as `https://api-direct.dimilinks.com/` to avoid an invalid `/v1/v1/messages` request. Both forms use the same domain and Bearer key.
 
 ## Recommended workflows
 
 ```text
-POST https://dimilinks.com/v1/chat/completions          # Chat (OpenAI-compatible; recommended for coding)
-POST https://api-direct.dimilinks.com/v1/messages       # Chat (native Anthropic protocol)
-POST https://dimilinks.com/v1/images/generations?async=true  # Image: asynchronous submission
-POST https://dimilinks.com/v1/videos/generations             # Video: asynchronous submission (asynchronous by default)
-GET  https://dimilinks.com/v1/tasks/{task_id}                # Shared image / video task retrieval
+POST https://api-direct.dimilinks.com/v1/chat/completions          # Chat (OpenAI-compatible; recommended for coding)
+POST https://api-direct.dimilinks.com/v1/messages                  # Chat (native Anthropic protocol)
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true  # Image: asynchronous submission
+POST https://api-direct.dimilinks.com/v1/videos/generations             # Video: asynchronous submission (asynchronous by default)
+GET  https://api-direct.dimilinks.com/v1/tasks/{task_id}                # Shared image / video task retrieval
 ```
 
 ## Common destinations

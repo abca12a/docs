@@ -14,7 +14,7 @@ icon: "image"
 ## 请求地址
 
 ```http
-POST https://dimilinks.com/v1/images/generations?async=true
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -22,7 +22,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## 文生图示例
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -38,7 +38,7 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 ## 图生图示例
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -86,7 +86,7 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 
 `data[].url` 不一定是公网图片链接，请同时兼容三种形式：
 
-- `/p/img/...`：相对路径，展示或下载前补成 `https://dimilinks.com/p/img/...`。该路径不需要 Bearer，URL 自带签名和过期时间。
+- `/p/img/...`：相对路径，展示或下载前补成 `https://api-direct.dimilinks.com/p/img/...`。该路径不需要 Bearer，URL 自带签名和过期时间。
 - `https://...`：完整图片链接，可直接请求或展示。
 - `data:image/...;base64,...`：Data URL，字符串本身就是图片内容。网页可直接作为 `<img src>`；服务端脚本保存文件时需要先解码 base64。
 

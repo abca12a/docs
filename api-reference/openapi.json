@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://dimilinks.com/v1",
+      "url": "https://api-direct.dimilinks.com/v1",
       "description": "OpenAI 兼容入口：chat completions / images / videos / models / tasks"
     }
   ],

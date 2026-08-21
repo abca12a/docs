@@ -35,7 +35,7 @@ claude
 Add the variables to your shell configuration (`~/.zshrc` or `~/.bashrc`) to persist them. To maintain multiple configurations for different keys, use a tool such as [direnv](https://direnv.net/) or [mise](https://mise.jdx.dev/) to inject them by directory.
 
 <Note>
-  Claude Code does not read the OpenAI-compatible endpoint. You must use `https://api-direct.dimilinks.com/`, not `dimilinks.com/v1`.
+  The recommended DimiLinks request URL is `https://api-direct.dimilinks.com/v1`, but Claude Code appends `/v1/messages` automatically. Set `ANTHROPIC_BASE_URL` to `https://api-direct.dimilinks.com/`; otherwise it will request the invalid `/v1/v1/messages` path.
 </Note>
 
 ## Recommended models

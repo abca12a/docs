@@ -10,7 +10,7 @@ icon: "wand-magic-sparkles"
 ## Request URL
 
 ```http
-POST https://dimilinks.com/v1/images/edits
+POST https://api-direct.dimilinks.com/v1/images/edits
 Content-Type: multipart/form-data
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -20,7 +20,7 @@ Upload at least one `image` file.
 ## Single-image example
 
 ```bash
-curl "https://dimilinks.com/v1/images/edits" \
+curl "https://api-direct.dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -F "model=gpt-image-2" \
   -F "prompt=Restyle the image as vintage film while preserving the main subject" \
@@ -34,7 +34,7 @@ curl "https://dimilinks.com/v1/images/edits" \
 Upload up to nine reference images.
 
 ```bash
-curl "https://dimilinks.com/v1/images/edits" \
+curl "https://api-direct.dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -F "model=gpt-image-2" \
   -F "prompt=Blend the styles of both reference images to create a primary ecommerce product image" \

@@ -127,7 +127,7 @@ for (const [language, pages] of languagePages) {
 }
 
 const snapshot = readJson('data/supported-models.json')
-assert.equal(snapshot.source, 'https://dimilinks.com/api/pricing')
+assert.equal(snapshot.source, 'https://api-direct.dimilinks.com/api/pricing')
 assert.match(snapshot.verified_at, /^\d{4}-\d{2}-\d{2}$/)
 
 const allowedModels = new Set([

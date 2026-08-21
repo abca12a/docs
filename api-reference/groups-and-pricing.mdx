@@ -15,7 +15,7 @@ DimiLinks 上不同模型属于不同分组，分组直接决定最终费用。�
 ## 权威接口
 
 ```bash
-curl https://dimilinks.com/api/pricing
+curl https://api-direct.dimilinks.com/api/pricing
 ```
 
 该接口无需登录即可访问，返回当前线上的全部分组、可用分组说明、模型清单和倍率：
@@ -108,7 +108,7 @@ curl https://dimilinks.com/api/pricing
 2. **显式传 `group`**：在请求体里加 `"group": "claude 特价"` 等。前提是该分组同时存在于 API Key 可用分组与模型 `enable_groups` 中，否则会返回 `403 model_not_allowed`。
 
 ```bash
-curl https://dimilinks.com/v1/chat/completions \
+curl https://api-direct.dimilinks.com/v1/chat/completions \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

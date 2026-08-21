@@ -11,7 +11,7 @@ icon: "terminal"
 The DimiLinks console can send a GPT key directly to [CC Switch](https://github.com/farion1231/cc-switch):
 
 1. On the API Keys page, click "Import to CC Switch" for a key with no model restriction or a restriction to GPT models.
-2. CC Switch automatically adds a `Codex` provider with the base URL `https://dimilinks.com/v1`.
+2. CC Switch automatically adds a `Codex` provider with the base URL `https://api-direct.dimilinks.com/v1`.
 3. Before starting Codex, run `cc-switch use codex` to route Codex through the DimiLinks OpenAI-compatible endpoint.
 
 See [One-click import into CC Switch / Cherry Studio](/en/api-reference/integrations/ccswitch) for the deep-link structure.
@@ -23,7 +23,7 @@ To manage it yourself, edit `~/.codex/config.toml` and add a provider:
 ```toml
 [providers.dimilinks]
 name = "DimiLinks"
-base_url = "https://dimilinks.com/v1"
+base_url = "https://api-direct.dimilinks.com/v1"
 api_key = "sk-..."
 default_model = "gpt-5.5"
 ```
@@ -40,7 +40,7 @@ To use DimiLinks by default, set `provider = "dimilinks"` at the top level of th
 ## Switch temporarily with environment variables
 
 ```bash
-export OPENAI_BASE_URL="https://dimilinks.com/v1"
+export OPENAI_BASE_URL="https://api-direct.dimilinks.com/v1"
 export OPENAI_API_KEY="sk-..."
 codex
 ```
@@ -55,11 +55,11 @@ This is useful for temporary troubleshooting or CI.
 | General chat / long context | `gpt-5.5`, `gpt-5.6-luna` |
 | Low-cost batch tasks | `gpt-5.4-mini` |
 
-Treat `GET https://dimilinks.com/v1/models` as the authoritative model catalog.
+Treat `GET https://api-direct.dimilinks.com/v1/models` as the authoritative model catalog.
 
 ## Troubleshooting
 
 - **`401 Invalid token`:** Check whether shell quoting truncated `api_key` / `OPENAI_API_KEY`.
-- **`404`:** This occurs when the base URL is set to `https://dimilinks.com/` without `/v1`. The OpenAI-compatible endpoint requires `/v1`.
+- **`404`:** This occurs when the base URL is set to `https://api-direct.dimilinks.com/` without `/v1`. The OpenAI-compatible endpoint requires `/v1`.
 - **`429 rate_limit_rpm`:** Reduce concurrency. `OPENAI_MAX_RETRIES` already backs off by default, but you can increase it.
 - **Keep an official OpenAI account available as well:** Keep another provider in `config.toml` and switch with `provider use` when needed.

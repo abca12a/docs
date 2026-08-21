@@ -10,7 +10,7 @@ Video and image tasks share `/v1/tasks/{task_id}`. After submitting `/v1/videos/
 ## Request
 
 ```bash
-curl "https://dimilinks.com/v1/tasks/video_xxx" \
+curl "https://api-direct.dimilinks.com/v1/tasks/video_xxx" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 ```
 
@@ -46,7 +46,7 @@ After the task reaches `completed`, retrieve the resulting video from `/v1/video
 ```
 
 ```bash
-curl -L "https://dimilinks.com/v1/videos/video_xxx/content" \
+curl -L "https://api-direct.dimilinks.com/v1/videos/video_xxx/content" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -o video.mp4
 ```

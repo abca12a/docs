@@ -4,10 +4,7 @@ description: "Call every DimiLinks API with a Bearer token."
 icon: "key"
 ---
 
-All DimiLinks endpoints use the same Bearer key. Choose the base URL for the protocol family you use:
-
-- OpenAI-compatible protocol: `https://dimilinks.com/v1`
-- Native Anthropic protocol: `https://api-direct.dimilinks.com/`
+All authenticated DimiLinks model endpoints use the unified request URL `https://api-direct.dimilinks.com/v1` and the same Bearer key. OpenAI-compatible SDKs use this base URL directly. For the official Anthropic SDK, configure `https://api-direct.dimilinks.com/` and let the SDK append `/v1/messages` automatically.
 
 Request headers:
 
@@ -20,7 +17,7 @@ Content-Type: application/json
 
 ```bash
 # OpenAI-compatible endpoint
-curl "https://dimilinks.com/v1/models" \
+curl "https://api-direct.dimilinks.com/v1/models" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 
 # Native Anthropic endpoint
@@ -53,7 +50,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="sk-...",
-    base_url="https://dimilinks.com/v1",
+    base_url="https://api-direct.dimilinks.com/v1",
 )
 
 response = client.chat.completions.create(
@@ -80,7 +77,7 @@ response = client.messages.create(
 ```
 
 <Note>
-  Set the Anthropic SDK `base_url` to `https://api-direct.dimilinks.com/`. The SDK appends `/v1/messages` automatically.
+  Set the Anthropic SDK `base_url` to `https://api-direct.dimilinks.com/`. The SDK appends `/v1/messages` automatically; including `/v1` here would produce `/v1/v1/messages`.
 </Note>
 
 ## Image / video result URLs

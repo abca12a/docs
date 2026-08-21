@@ -35,7 +35,7 @@ claude
 把变量写到 shell 配置（`~/.zshrc`、`~/.bashrc`）就能持久生效。如果你需要为不同密钥准备多个配置，可以借助 [direnv](https://direnv.net/)、[mise](https://mise.jdx.dev/) 之类的工具，按目录注入。
 
 <Note>
-  Claude Code 不会读取 OpenAI 兼容入口。务必使用 `https://api-direct.dimilinks.com/`，不要写成 `dimilinks.com/v1`。
+  DimiLinks 的推荐请求地址是 `https://api-direct.dimilinks.com/v1`，但 Claude Code 会自动追加 `/v1/messages`，所以 `ANTHROPIC_BASE_URL` 必须填写 `https://api-direct.dimilinks.com/`，否则会请求错误的 `/v1/v1/messages`。
 </Note>
 
 ## 推荐模型

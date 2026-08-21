@@ -10,7 +10,7 @@ icon: "wand-magic-sparkles"
 ## 请求地址
 
 ```http
-POST https://dimilinks.com/v1/images/edits
+POST https://api-direct.dimilinks.com/v1/images/edits
 Content-Type: multipart/form-data
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -20,7 +20,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## 单图示例
 
 ```bash
-curl "https://dimilinks.com/v1/images/edits" \
+curl "https://api-direct.dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -F "model=gpt-image-2" \
   -F "prompt=把图片改成复古胶片风格，保留主体" \
@@ -34,7 +34,7 @@ curl "https://dimilinks.com/v1/images/edits" \
 最多上传 9 张参考图。
 
 ```bash
-curl "https://dimilinks.com/v1/images/edits" \
+curl "https://api-direct.dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -F "model=gpt-image-2" \
   -F "prompt=融合两张参考图的风格，生成电商主图" \

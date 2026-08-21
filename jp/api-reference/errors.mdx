@@ -6,10 +6,10 @@ icon: "circle-exclamation"
 
 DimiLinks のエラーレスポンス形式は、上流のプロトコルに準拠します。
 
-- `https://dimilinks.com/v1/*`（OpenAI 互換）の API では、OpenAI 形式の `error` ラッパーを使用します。
+- `https://api-direct.dimilinks.com/v1/*`（OpenAI 互換）の API では、OpenAI 形式の `error` ラッパーを使用します。
 - `https://api-direct.dimilinks.com/v1/messages`（Anthropic ネイティブ）の API では、Anthropic ネイティブ形式 `{"type":"error","error":{...}}` を使用します。
 
-OpenAI 形式（`dimilinks.com/v1`）：
+OpenAI 形式（`/v1/*` エンドポイント）：
 
 ```json
 {
@@ -21,7 +21,7 @@ OpenAI 形式（`dimilinks.com/v1`）：
 }
 ```
 
-Anthropic 形式（`api-direct.dimilinks.com`）：
+Anthropic 形式（`/v1/messages` エンドポイント）：
 
 ```json
 {
@@ -53,4 +53,4 @@ Anthropic 形式（`api-direct.dimilinks.com`）：
 - `429` では指数バックオフを使用し、並行数を減らしてください。すぐに高頻度で再試行しないでください。
 - `5xx` / `502` / `503` ではユーザーによる再試行を許可できますが、上流の問題を調査できるようログを記録してください。
 - タスク API が `404` を返したら、不要なリクエストを避けるためすぐにポーリングを停止してください。
-- 同じビジネスロジックから 2 つのドメインを呼び出す場合は、HTTP クライアント側で「`error.message` または `error.error.message` を読み取る」処理を共通化し、呼び出し元ごとに互換処理を重複実装しないことを推奨します。
+- 同じビジネスロジックから 2 種類のプロトコルを呼び出す場合は、HTTP クライアント側で「`error.message` または `error.error.message` を読み取る」処理を共通化し、呼び出し元ごとに互換処理を重複実装しないことを推奨します。

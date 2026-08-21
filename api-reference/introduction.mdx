@@ -4,14 +4,14 @@ description: "DimiLinks 统一 API 的基础信息和路由概览。"
 icon: "terminal"
 ---
 
-## Base URL
+## 请求地址
 
-按协议族选择对应域名，两端共用同一把 Bearer 密钥：
+所有公开 API 请求统一走 `api-direct.dimilinks.com`。模型接口的推荐请求地址是 `https://api-direct.dimilinks.com/v1`，并共用同一把 Bearer 密钥。
 
-| 协议族 | Base URL | 主要路由 |
+| 使用方式 | 客户端中填写的 Base URL | 说明 |
 | --- | --- | --- |
-| OpenAI 兼容 | `https://dimilinks.com/v1` | `/chat/completions`、`/models`、`/images/*`、`/videos/*`、`/tasks/{id}` |
-| Anthropic 原生 | `https://api-direct.dimilinks.com/` | `/v1/messages` |
+| OpenAI 兼容 SDK / 通用 HTTP 客户端 | `https://api-direct.dimilinks.com/v1` | 直接追加 `/chat/completions`、`/models`、`/images/*` 等路由 |
+| Anthropic 官方 SDK / Claude Code | `https://api-direct.dimilinks.com/` | 客户端会自动追加 `/v1/messages`，不要重复填写 `/v1` |
 
 详见 [Authentication](/api-reference/authentication)。
 
@@ -19,15 +19,15 @@ icon: "terminal"
 
 | 方法 | 完整地址 | 说明 |
 | --- | --- | --- |
-| `GET` | `https://dimilinks.com/v1/models` | 查询当前密钥可用模型 |
-| `POST` | `https://dimilinks.com/v1/chat/completions` | OpenAI 兼容对话；适用于 GPT，也支持以 OpenAI 协议调用 Claude 等文本模型 |
+| `GET` | `https://api-direct.dimilinks.com/v1/models` | 查询当前密钥可用模型 |
+| `POST` | `https://api-direct.dimilinks.com/v1/chat/completions` | OpenAI 兼容对话；适用于 GPT，也支持以 OpenAI 协议调用 Claude 等文本模型 |
 | `POST` | `https://api-direct.dimilinks.com/v1/messages` | Anthropic 原生协议；推荐 Claude SDK / Claude Code 使用 |
-| `POST` | `https://dimilinks.com/v1/images/generations` | 文生图，支持 JSON 参考图扩展 |
-| `POST` | `https://dimilinks.com/v1/images/edits` | multipart 图生图与编辑 |
-| `POST` | `https://dimilinks.com/v1/videos/generations` | 文生视频与参考图生视频 |
-| `GET` | `https://dimilinks.com/v1/tasks/{task_id}` | 图片与视频通用任务查询 |
-| `GET` | `https://dimilinks.com/v1/videos/{task_id}/content` | 视频任务结果直链（鉴权访问） |
-| `GET` | `https://dimilinks.com/p/img/{task_id}/{idx}` | 图片签名链接（无需 Bearer，URL 自带签名） |
+| `POST` | `https://api-direct.dimilinks.com/v1/images/generations` | 文生图，支持 JSON 参考图扩展 |
+| `POST` | `https://api-direct.dimilinks.com/v1/images/edits` | multipart 图生图与编辑 |
+| `POST` | `https://api-direct.dimilinks.com/v1/videos/generations` | 文生视频与参考图生视频 |
+| `GET` | `https://api-direct.dimilinks.com/v1/tasks/{task_id}` | 图片与视频通用任务查询 |
+| `GET` | `https://api-direct.dimilinks.com/v1/videos/{task_id}/content` | 视频任务结果直链（鉴权访问） |
+| `GET` | `https://api-direct.dimilinks.com/p/img/{task_id}/{idx}` | 图片签名链接（无需 Bearer，URL 自带签名） |
 
 ## 协议风格
 
@@ -38,9 +38,9 @@ icon: "terminal"
 ## 异步任务建议
 
 ```text
-POST https://dimilinks.com/v1/images/generations?async=true   # 图片提交
-POST https://dimilinks.com/v1/videos/generations              # 视频提交（始终异步）
-GET  https://dimilinks.com/v1/tasks/{task_id}                 # 通用查询
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true   # 图片提交
+POST https://api-direct.dimilinks.com/v1/videos/generations              # 视频提交（始终异步）
+GET  https://api-direct.dimilinks.com/v1/tasks/{task_id}                 # 通用查询
 ```
 
 图片和视频生成耗时不固定，异步链路可以避免长连接、网关超时和页面关闭引起的丢任务。

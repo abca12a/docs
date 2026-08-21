@@ -8,7 +8,7 @@ icon: "brain"
 If you already use the official Anthropic SDK, or want native Claude capabilities such as system prompts, Tool Use, and Prompt Caching, call `/v1/messages` directly. It follows the official Anthropic protocol.
 
 <Note>
-  The native Anthropic protocol uses the dedicated `api-direct.dimilinks.com` domain, which is different from the OpenAI-compatible `dimilinks.com/v1` base URL. Both use the same key.
+  Anthropic Messages and all other public APIs use `api-direct.dimilinks.com`. The complete request URL is `https://api-direct.dimilinks.com/v1/messages`, and all protocols share the same Bearer key.
 </Note>
 
 ## Request URL

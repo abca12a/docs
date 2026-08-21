@@ -6,10 +6,10 @@ icon: "circle-exclamation"
 
 DimiLinks error responses follow the upstream protocol in use:
 
-- Endpoints under `https://dimilinks.com/v1/*` (OpenAI-compatible) return the OpenAI-style `error` wrapper.
+- Endpoints under `https://api-direct.dimilinks.com/v1/*` (OpenAI-compatible) return the OpenAI-style `error` wrapper.
 - `https://api-direct.dimilinks.com/v1/messages` (native Anthropic) returns the native Anthropic format `{"type":"error","error":{...}}`.
 
-OpenAI style (from `dimilinks.com/v1`):
+OpenAI style (`/v1/*` endpoints):
 
 ```json
 {
@@ -21,7 +21,7 @@ OpenAI style (from `dimilinks.com/v1`):
 }
 ```
 
-Anthropic style (from `api-direct.dimilinks.com`):
+Anthropic style (`/v1/messages` endpoint):
 
 ```json
 {
@@ -53,4 +53,4 @@ Anthropic style (from `api-direct.dimilinks.com`):
 - For `429`, use exponential backoff and reduce concurrency; do not retry immediately at high frequency.
 - For `5xx` / `502` / `503`, allow retries, but record logs for upstream troubleshooting.
 - Stop polling immediately when a task endpoint returns `404` to avoid wasting requests.
-- If the same application code calls both domains, add a shared HTTP client abstraction that reads either `error.message` or `error.error.message` instead of duplicating compatibility logic in every caller.
+- If the same application code calls both protocols, add a shared HTTP client abstraction that reads either `error.message` or `error.error.message` instead of duplicating compatibility logic in every caller.

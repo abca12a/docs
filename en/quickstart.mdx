@@ -22,7 +22,7 @@ Content-Type: application/json
 ## 2. Start a Claude chat through the OpenAI-compatible endpoint
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -63,7 +63,7 @@ Change `model` to `gpt-5.5`, `gpt-5.6-terra`, `qwen3.7-max`, or another availabl
 
 ## 3. Use the native Anthropic protocol (recommended for the Claude SDK / Claude Code)
 
-If you use the official Anthropic SDK or Claude Code, use the dedicated base URL `https://api-direct.dimilinks.com/`:
+The complete request still goes to `/v1/messages` under the unified request URL. If you use the official Anthropic SDK or Claude Code, configure the client's `base_url` as `https://api-direct.dimilinks.com/` and let the client append `/v1/messages` automatically:
 
 ```bash
 curl "https://api-direct.dimilinks.com/v1/messages" \
@@ -84,7 +84,7 @@ See [Anthropic Messages](/en/api-reference/chat/anthropic-messages) for details.
 ## 4. Enable streaming
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

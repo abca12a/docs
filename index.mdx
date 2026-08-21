@@ -31,25 +31,24 @@ DimiLinks 提供与 OpenAI、Anthropic 使用习惯一致的统一 API。一把 
   </Card>
 </Columns>
 
-## Base URL
+## 请求地址
 
-DimiLinks 按协议族提供两个域名：
+DimiLinks 的模型 API 统一使用以下请求地址：
 
-| 协议族 | Base URL | 适用 SDK / 客户端 |
-| --- | --- | --- |
-| OpenAI 兼容 | `https://dimilinks.com/v1` | OpenAI SDK、Codex CLI、Cursor、Continue 的 OpenAI provider |
-| Anthropic 原生 | `https://api-direct.dimilinks.com/` | Anthropic SDK、Claude Code、Cherry Studio 的 Anthropic provider |
+```text
+https://api-direct.dimilinks.com/v1
+```
 
-调用 `/v1/chat/completions`、`/v1/images/*`、`/v1/videos/*`、`/v1/models` 等 OpenAI 风格接口走 `dimilinks.com`；调用 `/v1/messages` 这类 Anthropic 原生接口走 `api-direct.dimilinks.com`。两套域名共用同一把 Bearer 密钥。
+OpenAI 兼容接口可直接把它填写为 base URL。Anthropic 官方 SDK、Claude Code 等原生客户端会自动追加 `/v1/messages`，因此这类客户端的 `base_url` 要填写为 `https://api-direct.dimilinks.com/`，避免请求变成错误的 `/v1/v1/messages`。两种配置使用同一域名和同一把 Bearer 密钥。
 
 ## 推荐链路
 
 ```text
-POST https://dimilinks.com/v1/chat/completions          # 对话（OpenAI 兼容，推荐编程使用）
-POST https://api-direct.dimilinks.com/v1/messages       # 对话（Anthropic 原生协议）
-POST https://dimilinks.com/v1/images/generations?async=true  # 图片：异步提交
-POST https://dimilinks.com/v1/videos/generations             # 视频：异步提交（默认即异步）
-GET  https://dimilinks.com/v1/tasks/{task_id}                # 图片 / 视频任务通用查询
+POST https://api-direct.dimilinks.com/v1/chat/completions          # 对话（OpenAI 兼容，推荐编程使用）
+POST https://api-direct.dimilinks.com/v1/messages                  # 对话（Anthropic 原生协议）
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true  # 图片：异步提交
+POST https://api-direct.dimilinks.com/v1/videos/generations             # 视频：异步提交（默认即异步）
+GET  https://api-direct.dimilinks.com/v1/tasks/{task_id}                # 图片 / 视频任务通用查询
 ```
 
 ## 常用入口

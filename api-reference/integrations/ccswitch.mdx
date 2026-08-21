@@ -14,11 +14,13 @@ icon: "share-from-square"
 
 控制台会按密钥的「模型限制」与分组自动推荐目标 provider：
 
+所有请求都使用 `api-direct.dimilinks.com`。一键导入会根据目标客户端是否自动追加 API 路径，写入带 `/v1` 或不带 `/v1` 的正确格式。
+
 | 密钥模型 | 目标 provider | base URL |
 | --- | --- | --- |
 | 仅 Claude 系列 | Anthropic 风格 | `https://api-direct.dimilinks.com/` |
 | 仅 Gemini 系列 | Gemini 风格 | `https://api-direct.dimilinks.com/` |
-| 其它（GPT / Grok / 不限模型） | OpenAI 风格 | `https://dimilinks.com/v1` |
+| 其它（GPT / Grok / 不限模型） | OpenAI 风格 | `https://api-direct.dimilinks.com/v1` |
 
 如果导入失败，常见原因：
 
@@ -47,7 +49,7 @@ ccswitch://v1/import?resource=provider
 | `app` | `claude` / `codex` / `gemini`，默认按密钥模型族推荐，可在导入前手动切换 |
 | `name` | 在 CC Switch 内显示的 provider 名称 |
 | `apiKey` | DimiLinks Bearer 密钥 |
-| `endpoint` | base URL（按目标工具取 `https://dimilinks.com/v1` 或 `https://api-direct.dimilinks.com`，不带结尾斜杠） |
+| `endpoint` | base URL（按目标工具取 `https://api-direct.dimilinks.com/v1` 或 `https://api-direct.dimilinks.com`，不带结尾斜杠） |
 | `model` | 当密钥只允许单个模型时附带，未指定时由用户在 CC Switch 内自己选 |
 
 ## Cherry Studio deep link 结构
@@ -76,7 +78,7 @@ cherrystudio://providers/api-keys?v=1&data=<urlsafe-base64>
 
 | 客户端 | 选择类型 | base URL | 密钥 |
 | --- | --- | --- | --- |
-| Cherry Studio | OpenAI | `https://dimilinks.com/v1` | DimiLinks Bearer |
+| Cherry Studio | OpenAI | `https://api-direct.dimilinks.com/v1` | DimiLinks Bearer |
 | Cherry Studio | Anthropic | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
 | Cherry Studio | Gemini | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
 | CC Switch | Codex / Claude / Gemini | 同上 | 同上 |

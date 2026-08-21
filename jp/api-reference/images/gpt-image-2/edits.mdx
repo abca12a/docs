@@ -10,7 +10,7 @@ icon: "wand-magic-sparkles"
 ## リクエスト URL
 
 ```http
-POST https://dimilinks.com/v1/images/edits
+POST https://api-direct.dimilinks.com/v1/images/edits
 Content-Type: multipart/form-data
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -20,7 +20,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## 1 枚の画像を使用する例
 
 ```bash
-curl "https://dimilinks.com/v1/images/edits" \
+curl "https://api-direct.dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -F "model=gpt-image-2" \
   -F "prompt=主体を維持したまま、画像をレトロなフィルム写真風に変更する" \
@@ -34,7 +34,7 @@ curl "https://dimilinks.com/v1/images/edits" \
 参照画像は最大 9 枚までアップロードできます。
 
 ```bash
-curl "https://dimilinks.com/v1/images/edits" \
+curl "https://api-direct.dimilinks.com/v1/images/edits" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -F "model=gpt-image-2" \
   -F "prompt=2 枚の参照画像のスタイルを融合し、EC サイトの商品メイン画像を生成する" \

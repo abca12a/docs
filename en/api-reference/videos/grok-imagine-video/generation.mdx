@@ -14,7 +14,7 @@ icon: "film"
 ## Request URL
 
 ```http
-POST https://dimilinks.com/v1/videos/generations
+POST https://api-direct.dimilinks.com/v1/videos/generations
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -22,7 +22,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## Text-to-video example
 
 ```bash
-curl "https://dimilinks.com/v1/videos/generations" \
+curl "https://api-direct.dimilinks.com/v1/videos/generations" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ After receiving `task_id`, call [Retrieve video task](/en/api-reference/videos/g
 Convert reference images to `data:image/...;base64,...` Data URLs first. Browser `blob:` URLs cannot be submitted directly; your server must read the binary data and encode it.
 
 ```bash
-curl "https://dimilinks.com/v1/videos/generations" \
+curl "https://api-direct.dimilinks.com/v1/videos/generations" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

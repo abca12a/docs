@@ -4,10 +4,7 @@ description: "Bearer Token で DimiLinks のすべての API を呼び出しま�
 icon: "key"
 ---
 
-DimiLinks のすべての API は同じ Bearer キーを使用します。プロトコルに応じて base URL を選択してください。
-
-- OpenAI 互換プロトコル：`https://dimilinks.com/v1`
-- Anthropic ネイティブプロトコル：`https://api-direct.dimilinks.com/`
+DimiLinks の認証が必要なモデル API は、統一されたリクエスト URL `https://api-direct.dimilinks.com/v1` と同じ Bearer キーを使用します。OpenAI 互換 SDK では、この base URL をそのまま使用します。Anthropic 公式 SDK では `https://api-direct.dimilinks.com/` を指定し、SDK に `/v1/messages` を自動追加させてください。
 
 リクエストヘッダー：
 
@@ -20,7 +17,7 @@ Content-Type: application/json
 
 ```bash
 # OpenAI 互換エンドポイント
-curl "https://dimilinks.com/v1/models" \
+curl "https://api-direct.dimilinks.com/v1/models" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 
 # Anthropic ネイティブエンドポイント
@@ -53,7 +50,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="sk-...",
-    base_url="https://dimilinks.com/v1",
+    base_url="https://api-direct.dimilinks.com/v1",
 )
 
 response = client.chat.completions.create(
@@ -80,7 +77,7 @@ response = client.messages.create(
 ```
 
 <Note>
-  Anthropic SDK の `base_url` は `https://api-direct.dimilinks.com/` を指定してください。SDK が内部で `/v1/messages` を自動的に付加します。
+  Anthropic SDK の `base_url` は `https://api-direct.dimilinks.com/` を指定してください。SDK が内部で `/v1/messages` を自動的に付加するため、ここに `/v1` を含めると `/v1/v1/messages` になります。
 </Note>
 
 ## 画像 / 動画の結果リンク

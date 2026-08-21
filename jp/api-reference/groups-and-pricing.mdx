@@ -15,7 +15,7 @@ DimiLinks のモデルはそれぞれ異なるグループに属し、グルー�
 ## 正式な API
 
 ```bash
-curl https://dimilinks.com/api/pricing
+curl https://api-direct.dimilinks.com/api/pricing
 ```
 
 この API はログインせずに利用でき、現在オンラインで提供されているすべてのグループ、利用可能グループの説明、モデル一覧、倍率を返します。
@@ -108,7 +108,7 @@ curl https://dimilinks.com/api/pricing
 2. **`group` を明示する**：リクエストボディに `"group": "claude 特价"` などを追加します。そのグループが API Key の利用可能グループとモデルの `enable_groups` の両方に含まれていない場合、`403 model_not_allowed` が返されます。
 
 ```bash
-curl https://dimilinks.com/v1/chat/completions \
+curl https://api-direct.dimilinks.com/v1/chat/completions \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

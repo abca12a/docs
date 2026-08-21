@@ -14,11 +14,13 @@ If you have installed [CC Switch](https://github.com/farion1231/cc-switch) or [C
 
 The console recommends a target provider based on the key's model restrictions and groups:
 
+Every request uses `api-direct.dimilinks.com`. One-click import writes the correct form with or without `/v1`, depending on whether the target client appends the API path automatically.
+
 | Key models | Target provider | Base URL |
 | --- | --- | --- |
 | Claude family only | Anthropic style | `https://api-direct.dimilinks.com/` |
 | Gemini family only | Gemini style | `https://api-direct.dimilinks.com/` |
-| Other (GPT / unrestricted) | OpenAI style | `https://dimilinks.com/v1` |
+| Other (GPT / unrestricted) | OpenAI style | `https://api-direct.dimilinks.com/v1` |
 
 Common reasons an import fails:
 
@@ -47,7 +49,7 @@ ccswitch://v1/import?resource=provider
 | `app` | `claude` / `codex` / `gemini`; recommended from the key's model family by default and selectable before import |
 | `name` | Provider name shown in CC Switch |
 | `apiKey` | DimiLinks Bearer key |
-| `endpoint` | Base URL for the target tool: `https://dimilinks.com/v1` or `https://api-direct.dimilinks.com`, without a trailing slash |
+| `endpoint` | Base URL for the target tool: `https://api-direct.dimilinks.com/v1` or `https://api-direct.dimilinks.com`, without a trailing slash |
 | `model` | Included when the key allows only one model; otherwise, the user selects a model in CC Switch |
 
 ## Cherry Studio deep-link structure
@@ -76,7 +78,7 @@ If you do not want one-click import, create the provider manually in the client:
 
 | Client | Type | Base URL | Key |
 | --- | --- | --- | --- |
-| Cherry Studio | OpenAI | `https://dimilinks.com/v1` | DimiLinks Bearer |
+| Cherry Studio | OpenAI | `https://api-direct.dimilinks.com/v1` | DimiLinks Bearer |
 | Cherry Studio | Anthropic | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
 | Cherry Studio | Gemini | `https://api-direct.dimilinks.com/` | DimiLinks Bearer |
 | CC Switch | Codex / Claude / Gemini | Same as above | Same as above |

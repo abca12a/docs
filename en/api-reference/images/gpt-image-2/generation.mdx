@@ -14,7 +14,7 @@ icon: "image"
 ## Request URL
 
 ```http
-POST https://dimilinks.com/v1/images/generations?async=true
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -22,7 +22,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## Text-to-image example
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -38,7 +38,7 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 ## Image-to-image example
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -86,7 +86,7 @@ Synchronous mode returns after the image is ready:
 
 `data[].url` is not always a public image URL. Support all three forms:
 
-- `/p/img/...`: a relative path. Prefix it with `https://dimilinks.com` before displaying or downloading it. The path requires no Bearer token because the URL includes a signature and expiration time.
+- `/p/img/...`: a relative path. Prefix it with `https://api-direct.dimilinks.com` before displaying or downloading it. The path requires no Bearer token because the URL includes a signature and expiration time.
 - `https://...`: a complete image URL that can be requested or displayed directly.
 - `data:image/...;base64,...`: a Data URL containing the image itself. A webpage can use it directly as `<img src>`; a server-side script must decode the base64 before saving it as a file.
 

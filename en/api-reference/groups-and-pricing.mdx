@@ -15,7 +15,7 @@ Models on DimiLinks belong to different groups, and the selected group directly 
 ## Authoritative endpoint
 
 ```bash
-curl https://dimilinks.com/api/pricing
+curl https://api-direct.dimilinks.com/api/pricing
 ```
 
 This public endpoint requires no authentication and returns all live groups, public group descriptions, models, and multipliers:
@@ -108,7 +108,7 @@ There are two ways to select a group in a request:
 2. **Pass `group` explicitly:** Add a value such as `"group": "claude 特价"` to the request body. The group must belong to both the API key's available groups and the model's `enable_groups`; otherwise, the API returns `403 model_not_allowed`.
 
 ```bash
-curl https://dimilinks.com/v1/chat/completions \
+curl https://api-direct.dimilinks.com/v1/chat/completions \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

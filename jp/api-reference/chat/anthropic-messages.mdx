@@ -8,7 +8,7 @@ icon: "brain"
 すでに Anthropic 公式 SDK を使用している場合や、Claude ネイティブの system prompt、Tool Use、Prompt Caching などの機能を利用したい場合は、`/v1/messages` を直接呼び出すことを推奨します。Anthropic 公式プロトコルと同じ仕様です。
 
 <Note>
-  Anthropic ネイティブプロトコルでは専用ドメイン `api-direct.dimilinks.com` を使用します。OpenAI 互換エンドポイントの `dimilinks.com/v1` とは base URL が異なりますが、同じキーを共用できます。
+  Anthropic Messages を含むすべての公開 API は `api-direct.dimilinks.com` を使用します。完全なリクエスト URL は `https://api-direct.dimilinks.com/v1/messages` で、すべてのプロトコルが同じ Bearer キーを共有します。
 </Note>
 
 ## リクエスト URL

@@ -10,7 +10,7 @@ icon: "message"
 ## リクエスト URL
 
 ```http
-POST https://dimilinks.com/v1/chat/completions
+POST https://api-direct.dimilinks.com/v1/chat/completions
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -18,7 +18,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## 基本的な例
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -58,7 +58,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
 リクエストに `"stream": true` を追加すると、サーバーは `text/event-stream` で差分チャンクを返し、最後に `data: [DONE]` を送信して終了します。
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -N \
@@ -117,7 +117,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="sk-...",
-    base_url="https://dimilinks.com/v1",
+    base_url="https://api-direct.dimilinks.com/v1",
 )
 
 response = client.chat.completions.create(
@@ -139,7 +139,7 @@ import OpenAI from 'openai'
 
 const client = new OpenAI({
   apiKey: process.env.DIMILINKS_API_KEY,
-  baseURL: 'https://dimilinks.com/v1',
+  baseURL: 'https://api-direct.dimilinks.com/v1',
 })
 
 const response = await client.chat.completions.create({
@@ -151,7 +151,7 @@ const response = await client.chat.completions.create({
 ## ツール呼び出し (Tool calling)
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

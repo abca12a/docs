@@ -14,7 +14,7 @@ icon: "image"
 ## リクエスト URL
 
 ```http
-POST https://dimilinks.com/v1/images/generations?async=true
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -22,7 +22,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## テキストから画像を生成する例
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -38,7 +38,7 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 ## 画像から画像を生成する例
 
 ```bash
-curl "https://dimilinks.com/v1/images/generations?async=true" \
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -86,7 +86,7 @@ curl "https://dimilinks.com/v1/images/generations?async=true" \
 
 `data[].url` は必ずしも公開画像 URL とは限りません。次の 3 形式すべてに対応してください。
 
-- `/p/img/...`：相対パスです。表示またはダウンロードする前に `https://dimilinks.com/p/img/...` の形式に補完してください。このパスには Bearer は不要で、URL 自体に署名と有効期限が含まれています。
+- `/p/img/...`：相対パスです。表示またはダウンロードする前に `https://api-direct.dimilinks.com/p/img/...` の形式に補完してください。このパスには Bearer は不要で、URL 自体に署名と有効期限が含まれています。
 - `https://...`：完全な画像 URL です。そのままリクエストまたは表示できます。
 - `data:image/...;base64,...`：Data URL で、文字列自体が画像データです。Web ページではそのまま `<img src>` に指定できます。サーバー側のスクリプトでファイルとして保存する場合は、先に base64 をデコードしてください。
 

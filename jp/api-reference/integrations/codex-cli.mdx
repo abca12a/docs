@@ -11,7 +11,7 @@ icon: "terminal"
 DimiLinks コンソールでは、GPT 系のキーを [CC Switch](https://github.com/farion1231/cc-switch) にワンクリックで送信できます。
 
 1. 「API キー」ページで、モデル制限のないキー（または GPT シリーズに限定したキー）の「CC Switch にインポート」をクリックします。
-2. CC Switch に `Codex` provider が自動的に追加され、base URL は `https://dimilinks.com/v1` に設定されます。
+2. CC Switch に `Codex` provider が自動的に追加され、base URL は `https://api-direct.dimilinks.com/v1` に設定されます。
 3. Codex を起動する前に `cc-switch use codex` を実行すると、Codex が DimiLinks の OpenAI 互換ルートを使用するようになります。
 
 deep link の構造については、[CC Switch / Cherry Studio へのワンクリックインポート](/jp/api-reference/integrations/ccswitch)を参照してください。
@@ -23,7 +23,7 @@ deep link の構造については、[CC Switch / Cherry Studio へのワンク�
 ```toml
 [providers.dimilinks]
 name = "DimiLinks"
-base_url = "https://dimilinks.com/v1"
+base_url = "https://api-direct.dimilinks.com/v1"
 api_key = "sk-..."
 default_model = "gpt-5.5"
 ```
@@ -40,7 +40,7 @@ DimiLinks をデフォルトで使用する場合は、config のトップレベ
 ## 環境変数で一時的に切り替える
 
 ```bash
-export OPENAI_BASE_URL="https://dimilinks.com/v1"
+export OPENAI_BASE_URL="https://api-direct.dimilinks.com/v1"
 export OPENAI_API_KEY="sk-..."
 codex
 ```
@@ -55,11 +55,11 @@ codex
 | 汎用対話 / 長いコンテキスト | `gpt-5.5`、`gpt-5.6-luna` |
 | 低コストの一括処理 | `gpt-5.4-mini` |
 
-モデル一覧は `GET https://dimilinks.com/v1/models` を参照してください。
+モデル一覧は `GET https://api-direct.dimilinks.com/v1/models` を参照してください。
 
 ## よくある問題
 
 - **`401 Invalid token`**：`api_key` / `OPENAI_API_KEY` が shell の引用符によって途中で切れていないか確認してください。
-- **`404`**：base URL を `https://dimilinks.com/` と指定して `/v1` が抜けている場合に発生します。OpenAI 互換エンドポイントには必ず `/v1` を含めてください。
+- **`404`**：base URL を `https://api-direct.dimilinks.com/` と指定して `/v1` が抜けている場合に発生します。OpenAI 互換エンドポイントには必ず `/v1` を含めてください。
 - **`429 rate_limit_rpm`**：同時実行数を減らしてください。`OPENAI_MAX_RETRIES` はデフォルトでもバックオフしますが、必要に応じて値を増やせます。
 - **OpenAI 公式アカウントも併用したい**：`config.toml` に別の provider も残しておき、必要に応じて `provider use` で切り替えてください。

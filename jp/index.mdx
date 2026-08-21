@@ -31,25 +31,24 @@ DimiLinks は、OpenAI および Anthropic と同じ感覚で利用できる統�
   </Card>
 </Columns>
 
-## Base URL
+## リクエスト URL
 
-DimiLinks は、プロトコルごとに 2 つのドメインを提供します。
+DimiLinks のモデル API は、すべて次のリクエスト URL を使用します。
 
-| プロトコル | Base URL | 対応する SDK / クライアント |
-| --- | --- | --- |
-| OpenAI 互換 | `https://dimilinks.com/v1` | OpenAI SDK、Codex CLI、Cursor、Continue の OpenAI provider |
-| Anthropic ネイティブ | `https://api-direct.dimilinks.com/` | Anthropic SDK、Claude Code、Cherry Studio の Anthropic provider |
+```text
+https://api-direct.dimilinks.com/v1
+```
 
-`/v1/chat/completions`、`/v1/images/*`、`/v1/videos/*`、`/v1/models` などの OpenAI 形式 API には `dimilinks.com` を使用します。`/v1/messages` などの Anthropic ネイティブ API には `api-direct.dimilinks.com` を使用します。どちらのドメインでも同じ Bearer キーを利用できます。
+OpenAI 互換 API では、この値をそのまま base URL に指定できます。Anthropic 公式 SDK や Claude Code などのネイティブクライアントは `/v1/messages` を自動的に追加するため、これらの `base_url` には `https://api-direct.dimilinks.com/` を指定してください。これにより、誤った `/v1/v1/messages` へのリクエストを防げます。どちらの設定も同じドメインと Bearer キーを使用します。
 
 ## 推奨フロー
 
 ```text
-POST https://dimilinks.com/v1/chat/completions          # 対話（OpenAI 互換、プログラミング用途に推奨）
-POST https://api-direct.dimilinks.com/v1/messages       # 対話（Anthropic ネイティブプロトコル）
-POST https://dimilinks.com/v1/images/generations?async=true  # 画像：非同期送信
-POST https://dimilinks.com/v1/videos/generations             # 動画：非同期送信（デフォルトで非同期）
-GET  https://dimilinks.com/v1/tasks/{task_id}                # 画像 / 動画タスク共通の照会
+POST https://api-direct.dimilinks.com/v1/chat/completions          # 対話（OpenAI 互換、プログラミング用途に推奨）
+POST https://api-direct.dimilinks.com/v1/messages                  # 対話（Anthropic ネイティブプロトコル）
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true  # 画像：非同期送信
+POST https://api-direct.dimilinks.com/v1/videos/generations             # 動画：非同期送信（デフォルトで非同期）
+GET  https://api-direct.dimilinks.com/v1/tasks/{task_id}                # 画像 / 動画タスク共通の照会
 ```
 
 ## よく使うページ

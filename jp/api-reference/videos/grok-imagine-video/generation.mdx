@@ -14,7 +14,7 @@ icon: "film"
 ## リクエスト URL
 
 ```http
-POST https://dimilinks.com/v1/videos/generations
+POST https://api-direct.dimilinks.com/v1/videos/generations
 Content-Type: application/json
 Authorization: Bearer <DIMILINKS_API_KEY>
 ```
@@ -22,7 +22,7 @@ Authorization: Bearer <DIMILINKS_API_KEY>
 ## テキストから動画を生成する例
 
 ```bash
-curl "https://dimilinks.com/v1/videos/generations" \
+curl "https://api-direct.dimilinks.com/v1/videos/generations" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ curl "https://dimilinks.com/v1/videos/generations" \
 参照画像は、先に `data:image/...;base64,...` 形式の Data URL に変換する必要があります。ブラウザの `blob:` URL は直接指定できません。サーバー側でバイナリを読み込み、エンコードしてから指定してください。
 
 ```bash
-curl "https://dimilinks.com/v1/videos/generations" \
+curl "https://api-direct.dimilinks.com/v1/videos/generations" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

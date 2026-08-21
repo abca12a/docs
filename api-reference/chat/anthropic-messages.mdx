@@ -8,7 +8,7 @@ icon: "brain"
 如果你已经在用 Anthropic 官方 SDK，或想使用 Claude 原生的 system prompt、Tool Use、Prompt Caching 等能力，建议直接调用 `/v1/messages`。它与 Anthropic 官方协议一致。
 
 <Note>
-  Anthropic 原生协议走独立域名 `api-direct.dimilinks.com`，与 OpenAI 兼容入口的 `dimilinks.com/v1` 不是同一个 base URL，密钥共用一把。
+  Anthropic Messages 与其它公开 API 统一使用 `api-direct.dimilinks.com`。完整请求地址是 `https://api-direct.dimilinks.com/v1/messages`，并共用同一把 Bearer 密钥。
 </Note>
 
 ## 请求地址

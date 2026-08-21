@@ -22,7 +22,7 @@ Content-Type: application/json
 ## 2. Claude の対話を呼び出す（OpenAI 互換エンドポイント）
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -63,7 +63,7 @@ curl "https://dimilinks.com/v1/chat/completions" \
 
 ## 3. Anthropic ネイティブプロトコルを使う（Claude SDK / Claude Code に推奨）
 
-Anthropic 公式 SDK または Claude Code を使用する場合は、専用の base URL `https://api-direct.dimilinks.com/` を指定してください。
+完全なリクエストは、統一されたリクエスト URL の `/v1/messages` に送信されます。Anthropic 公式 SDK または Claude Code を使用する場合は、クライアントの `base_url` に `https://api-direct.dimilinks.com/` を指定し、クライアントに `/v1/messages` を自動追加させてください。
 
 ```bash
 curl "https://api-direct.dimilinks.com/v1/messages" \
@@ -84,7 +84,7 @@ curl "https://api-direct.dimilinks.com/v1/messages" \
 ## 4. ストリーミング出力に切り替える
 
 ```bash
-curl "https://dimilinks.com/v1/chat/completions" \
+curl "https://api-direct.dimilinks.com/v1/chat/completions" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

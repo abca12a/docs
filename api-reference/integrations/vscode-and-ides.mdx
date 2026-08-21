@@ -10,7 +10,7 @@ icon: "code"
 
 | 协议族 | base URL | 适合 |
 | --- | --- | --- |
-| OpenAI 兼容 | `https://dimilinks.com/v1` | GPT / 其它兼容模型 / 也可调 Claude（OpenAI 协议） |
+| OpenAI 兼容 | `https://api-direct.dimilinks.com/v1` | GPT / 其它兼容模型 / 也可调 Claude（OpenAI 协议） |
 | Anthropic 原生 | `https://api-direct.dimilinks.com/` | Claude SDK / Claude Code 风格 |
 
 API key 用 DimiLinks 控制台创建的 Bearer 密钥。
@@ -26,7 +26,7 @@ API key 用 DimiLinks 控制台创建的 Bearer 密钥。
       "title": "DimiLinks GPT-5.5",
       "provider": "openai",
       "model": "gpt-5.5",
-      "apiBase": "https://dimilinks.com/v1",
+      "apiBase": "https://api-direct.dimilinks.com/v1",
       "apiKey": "sk-..."
     },
     {
@@ -49,7 +49,7 @@ API key 用 DimiLinks 控制台创建的 Bearer 密钥。
 | 字段 | 值 |
 | --- | --- |
 | Provider | `OpenAI Compatible` |
-| Base URL | `https://dimilinks.com/v1` |
+| Base URL | `https://api-direct.dimilinks.com/v1` |
 | API Key | DimiLinks Bearer |
 | Model ID | 例如 `claude-sonnet-5`、`gpt-5.5` |
 
@@ -59,7 +59,7 @@ API key 用 DimiLinks 控制台创建的 Bearer 密钥。
 
 Cursor → Settings → Models → "OpenAI API Key"：
 
-- API Base URL：`https://dimilinks.com/v1`
+- API Base URL：`https://api-direct.dimilinks.com/v1`
 - API Key：DimiLinks Bearer
 - 然后 "Override OpenAI Models" 里加上你想用的模型 ID（例如 `gpt-5.5`、`claude-sonnet-5`）。
 
@@ -73,7 +73,7 @@ Cursor 当前只支持单一 OpenAI 兼容 base URL；如果你想用 Anthropic 
 {
   "language_models": {
     "openai": {
-      "api_url": "https://dimilinks.com/v1",
+      "api_url": "https://api-direct.dimilinks.com/v1",
       "available_models": [
         { "name": "claude-sonnet-5", "max_tokens": 200000 },
         { "name": "gpt-5.5", "max_tokens": 128000 }
@@ -93,7 +93,7 @@ JetBrains 系产品当前依赖官方网关，不直接暴露 base URL 配置。
 
 这一类自托管前端通常都有「OpenAI 兼容」provider。填法：
 
-- API URL：`https://dimilinks.com/v1`
+- API URL：`https://api-direct.dimilinks.com/v1`
 - API Key：DimiLinks Bearer
 - Model：例如 `claude-sonnet-5`、`gpt-5.5`、`qwen3.7-max`
 
@@ -101,7 +101,7 @@ JetBrains 系产品当前依赖官方网关，不直接暴露 base URL 配置。
 
 ## 常见问题
 
-- **填了 `https://dimilinks.com/`（缺 `/v1`）**：OpenAI 兼容客户端会 `404`，请补上 `/v1`。
+- **填了 `https://api-direct.dimilinks.com/`（缺 `/v1`）**：OpenAI 兼容客户端会 `404`，请补上 `/v1`。
 - **Claude 模型走 OpenAI 协议**：这是允许的，但部分高级特性（Tool Use、思考模式）只在 Anthropic 原生协议生效。需要这些能力时切到 Anthropic provider。
 - **HTTPS 证书报错**：请在系统级信任标准 CA 证书，DimiLinks 不需要额外的私有证书。
 - **大文件上下文 / 视觉**：能力随模型而定，先用 [List models](/api-reference/models) 查 `input_modalities`、`output_modalities`。

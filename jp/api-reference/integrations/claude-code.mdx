@@ -35,7 +35,7 @@ claude
 変数を shell の設定ファイル（`~/.zshrc`、`~/.bashrc`）に書き込むと、設定が永続化されます。異なるキー用に複数の設定を用意する場合は、[direnv](https://direnv.net/) や [mise](https://mise.jdx.dev/) などのツールを使い、ディレクトリごとに環境変数を注入できます。
 
 <Note>
-  Claude Code は OpenAI 互換エンドポイントを使用しません。必ず `https://api-direct.dimilinks.com/` を指定し、`dimilinks.com/v1` は指定しないでください。
+  DimiLinks の推奨リクエスト URL は `https://api-direct.dimilinks.com/v1` ですが、Claude Code は `/v1/messages` を自動的に追加します。そのため、`ANTHROPIC_BASE_URL` には `https://api-direct.dimilinks.com/` を指定してください。そうしないと、誤った `/v1/v1/messages` にリクエストされます。
 </Note>
 
 ## 推奨モデル
