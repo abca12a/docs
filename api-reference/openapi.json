@@ -287,33 +287,6 @@
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
-    },
-    "/images/tasks/{task_id}": {
-      "get": {
-        "tags": ["Tasks"],
-        "summary": "Retrieve legacy image task",
-        "operationId": "retrieveLegacyImageTask",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Legacy image task",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LegacyImageTask" }
-              }
-            }
-          },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" }
-        }
-      }
     }
   },
   "components": {
@@ -625,7 +598,7 @@
         "type": "object",
         "properties": {
           "created": { "type": "integer", "example": 1777080000 },
-          "task_id": { "type": "string", "example": "img_xxx" },
+          "task_id": { "type": "string", "example": "task_xxx" },
           "data": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ImageData" },
@@ -638,7 +611,7 @@
         "type": "object",
         "properties": {
           "created": { "type": "integer", "example": 1777080000 },
-          "task_id": { "type": "string", "example": "img_xxx" },
+          "task_id": { "type": "string", "example": "task_xxx" },
           "data": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ImageData" }
@@ -650,7 +623,7 @@
         "properties": {
           "url": {
             "type": "string",
-            "example": "/p/img/img_xxx/0?exp=1777166400000&sig=..."
+            "example": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=..."
           },
           "file_id": { "type": "string", "example": "file_xxx" }
         }
@@ -658,19 +631,32 @@
       "ImageTask": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "example": "img_xxx" },
-          "task_id": { "type": "string", "example": "img_xxx" },
-          "object": { "type": "string", "example": "image.task" },
+          "task_id": { "type": "string", "example": "task_xxx" },
+          "platform": { "type": "string", "example": "openai" },
           "status": {
             "type": "string",
-            "enum": ["queued", "in_progress", "succeeded", "failed"]
+            "enum": ["NOT_START", "SUBMITTED", "QUEUED", "IN_PROGRESS", "SUCCESS", "FAILURE"]
           },
-          "progress": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "progress": { "type": "string", "pattern": "^[0-9]{1,3}%$", "example": "50%" },
+          "fail_reason": { "type": "string" },
           "created_at": { "type": "integer" },
-          "completed_at": { "type": "integer" },
-          "result": { "$ref": "#/components/schemas/ImageResponse" },
-          "error": { "$ref": "#/components/schemas/ErrorObject" }
-        }
+          "finished_at": { "type": "integer" },
+          "data": { "$ref": "#/components/schemas/ImageTaskData" }
+        },
+        "required": ["task_id", "status", "progress", "created_at"]
+      },
+      "ImageTaskData": {
+        "type": "object",
+        "properties": {
+          "created": { "type": "integer" },
+          "task_id": { "type": "string", "example": "task_xxx" },
+          "status": { "type": "string", "example": "success" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ImageData" }
+          }
+        },
+        "additionalProperties": true
       },
       "VideoGenerationRequest": {
         "type": "object",
@@ -744,22 +730,6 @@
               "completed_at": { "type": "integer" },
               "error": { "$ref": "#/components/schemas/ErrorObject" }
             }
-          }
-        }
-      },
-      "LegacyImageTask": {
-        "type": "object",
-        "properties": {
-          "task_id": { "type": "string" },
-          "status": { "type": "string", "example": "success" },
-          "conversation_id": { "type": "string" },
-          "created": { "type": "integer" },
-          "finished_at": { "type": "integer" },
-          "error": { "type": "string" },
-          "credit_cost": { "type": "integer" },
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ImageData" }
           }
         }
       },

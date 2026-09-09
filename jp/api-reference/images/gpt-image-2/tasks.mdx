@@ -5,12 +5,12 @@ openapi: "GET /tasks/{task_id}"
 icon: "bars-progress"
 ---
 
-非同期画像タスクを送信した後、`task_id` を使用してタスクのステータスを照会します。新規実装では `/v1/tasks/{task_id}` を優先して使用してください。
+非同期画像タスクを送信した後、返された公開 `task_id` を使用してステータスを照会します。公開タスク ID は `task_` で始まり、画像プール内部の `img_` ID は照会に使用できません。
 
 ## リクエスト
 
 ```bash
-curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
+curl "https://api-direct.dimilinks.com/v1/tasks/task_xxx" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 ```
 
@@ -18,12 +18,17 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "in_progress",
-  "progress": 50,
-  "created_at": 1777080000
+  "task_id": "task_xxx",
+  "status": "IN_PROGRESS",
+  "progress": "50%",
+  "fail_reason": "",
+  "created_at": 1777080000,
+  "finished_at": 0,
+  "data": {
+    "task_id": "task_xxx",
+    "status": "in_progress",
+    "data": []
+  }
 }
 ```
 
@@ -31,18 +36,19 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "succeeded",
-  "progress": 100,
+  "task_id": "task_xxx",
+  "status": "SUCCESS",
+  "progress": "100%",
+  "fail_reason": "",
   "created_at": 1777080000,
-  "completed_at": 1777080060,
-  "result": {
+  "finished_at": 1777080060,
+  "data": {
     "created": 1777080000,
+    "task_id": "task_xxx",
+    "status": "success",
     "data": [
       {
-        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+        "url": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=...",
         "file_id": "file_xxx"
       }
     ]
@@ -52,25 +58,20 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ## 画像 URL の形式
 
-タスクが成功したら `result.data[].url` を読み取ります。このフィールドには、相対パス、完全な HTTP(S) URL、または `data:image/...;base64,...` 形式の Data URL が入る場合があります。
+タスクが成功したら `data.data[].url` を読み取ります。外側の `data` は保存された生成レスポンスで、その中の `data` フィールドに画像レコードが入ります。
 
-Data URL はエラーでもログ内容でもなく、画像データそのものです。Web ページではそのまま表示できます。スクリプトでファイルとして保存する場合は、先に base64 をデコードしてください。
+URL が `/p/img/` で始まる場合は、表示またはダウンロードする前に `https://lmage2.dimilinks.com` を補ってください。完全な `https://lmage2.dimilinks.com/p/img/...` URL はそのまま使用できます。署名と有効期限が URL に含まれるため、Bearer は不要です。
 
 ## 失敗時のレスポンス
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "failed",
-  "progress": 100,
+  "task_id": "task_xxx",
+  "status": "FAILURE",
+  "progress": "100%",
+  "fail_reason": "アップストリームからエラーが返されました",
   "created_at": 1777080000,
-  "completed_at": 1777080060,
-  "error": {
-    "code": "upstream_error",
-    "message": "アップストリームからエラーが返されました"
-  }
+  "finished_at": 1777080060
 }
 ```
 
@@ -78,31 +79,9 @@ Data URL はエラーでもログ内容でもなく、画像データそのも�
 
 | ステータス | 意味 | 呼び出し元での推奨対応 |
 | --- | --- | --- |
-| `queued` | 処理待ち | ポーリングを続けます。 |
-| `in_progress` | 生成中 | ポーリングを続けます。 |
-| `succeeded` | 完了 | `result.data[].url` を表示します。 |
-| `failed` | 失敗 | エラー情報を表示し、ユーザーが再試行できるようにします。 |
+| `NOT_START` / `SUBMITTED` / `QUEUED` | 処理待ち | ポーリングを続けます。 |
+| `IN_PROGRESS` | 生成中 | ポーリングを続けます。 |
+| `SUCCESS` | 完了 | `data.data[].url` を表示します。 |
+| `FAILURE` | 失敗 | `fail_reason` を表示し、ユーザーが再試行できるようにします。 |
 
-## 旧エンドポイント
-
-`GET /v1/images/tasks/{task_id}` は旧クライアント向けに維持されています。新規実装では 2 種類の照会構造を混在させないでください。
-
-旧エンドポイントのレスポンス例：
-
-```json
-{
-  "task_id": "img_xxx",
-  "status": "success",
-  "conversation_id": "conv_xxx",
-  "created": 1777080000,
-  "finished_at": 1777080060,
-  "error": "",
-  "credit_cost": 123,
-  "data": [
-    {
-      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
-      "file_id": "file_xxx"
-    }
-  ]
-}
-```
+画像タスクの照会には `GET /v1/tasks/{task_id}` だけを使用してください。削除済みの `/v1/images/tasks/{task_id}` は呼び出さず、画像プールの `img_xxx` を公開タスク ID として扱わないでください。

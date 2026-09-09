@@ -58,7 +58,7 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 ```json
 {
   "created": 1777080000,
-  "task_id": "img_xxx",
+  "task_id": "task_xxx",
   "data": []
 }
 ```
@@ -72,10 +72,10 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 ```json
 {
   "created": 1777080000,
-  "task_id": "img_xxx",
+  "task_id": "task_xxx",
   "data": [
     {
-      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "url": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=...",
       "file_id": "file_xxx"
     }
   ]
@@ -84,11 +84,12 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 
 ## 結果フィールドの説明
 
-`data[].url` は必ずしも公開画像 URL とは限りません。次の 3 形式すべてに対応してください。
+`data[].url` は画像結果の URL です。次のルールで処理してください。
 
-- `/p/img/...`：相対パスです。表示またはダウンロードする前に `https://api-direct.dimilinks.com/p/img/...` の形式に補完してください。このパスには Bearer は不要で、URL 自体に署名と有効期限が含まれています。
-- `https://...`：完全な画像 URL です。そのままリクエストまたは表示できます。
-- `data:image/...;base64,...`：Data URL で、文字列自体が画像データです。Web ページではそのまま `<img src>` に指定できます。サーバー側のスクリプトでファイルとして保存する場合は、先に base64 をデコードしてください。
+- `/p/img/...`：相対パスです。表示またはダウンロードする前に `https://lmage2.dimilinks.com` を補ってください。このパスには Bearer は不要で、URL 自体に署名と有効期限が含まれています。
+- `https://lmage2.dimilinks.com/p/img/...`：完全な画像 URL です。そのままリクエストまたは表示できます。
+
+非同期タスクの画像結果は、タスクレスポンスの `data.data[]` にあります。`result.data[]` ではありません。画像 URL 内の `img_xxx` は画像プールのリソース ID であり、送信時に返される公開タスク ID とは異なります。
 
 ## パラメータ
 

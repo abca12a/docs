@@ -5,12 +5,12 @@ openapi: "GET /tasks/{task_id}"
 icon: "bars-progress"
 ---
 
-After submitting an asynchronous image task, use its `task_id` to retrieve the status. New integrations should prefer `/v1/tasks/{task_id}`.
+After submitting an asynchronous image task, use the returned public `task_id` to retrieve its status. Public task IDs use the `task_` prefix; the image pool's internal `img_` ID cannot be used for retrieval.
 
 ## Request
 
 ```bash
-curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
+curl "https://api-direct.dimilinks.com/v1/tasks/task_xxx" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 ```
 
@@ -18,12 +18,17 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "in_progress",
-  "progress": 50,
-  "created_at": 1777080000
+  "task_id": "task_xxx",
+  "status": "IN_PROGRESS",
+  "progress": "50%",
+  "fail_reason": "",
+  "created_at": 1777080000,
+  "finished_at": 0,
+  "data": {
+    "task_id": "task_xxx",
+    "status": "in_progress",
+    "data": []
+  }
 }
 ```
 
@@ -31,18 +36,19 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "succeeded",
-  "progress": 100,
+  "task_id": "task_xxx",
+  "status": "SUCCESS",
+  "progress": "100%",
+  "fail_reason": "",
   "created_at": 1777080000,
-  "completed_at": 1777080060,
-  "result": {
+  "finished_at": 1777080060,
+  "data": {
     "created": 1777080000,
+    "task_id": "task_xxx",
+    "status": "success",
     "data": [
       {
-        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+        "url": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=...",
         "file_id": "file_xxx"
       }
     ]
@@ -52,25 +58,20 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ## Image URL formats
 
-After the task succeeds, read `result.data[].url`. It may be a relative path, a complete HTTP(S) URL, or a `data:image/...;base64,...` Data URL.
+After the task succeeds, read `data.data[].url`. The outer `data` is the saved generation response, and its `data` field contains the image records.
 
-A Data URL is neither an error nor log output; it is the image itself. A webpage can display it directly, while a script must decode the base64 before saving it as a file.
+If the URL starts with `/p/img/`, prefix it with `https://lmage2.dimilinks.com` before displaying or downloading it. A complete `https://lmage2.dimilinks.com/p/img/...` URL can be used directly; its signature and expiration are embedded, so no Bearer token is required.
 
 ## Failed response
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "failed",
-  "progress": 100,
+  "task_id": "task_xxx",
+  "status": "FAILURE",
+  "progress": "100%",
+  "fail_reason": "The upstream provider returned an error",
   "created_at": 1777080000,
-  "completed_at": 1777080060,
-  "error": {
-    "code": "upstream_error",
-    "message": "The upstream provider returned an error"
-  }
+  "finished_at": 1777080060
 }
 ```
 
@@ -78,31 +79,9 @@ A Data URL is neither an error nor log output; it is the image itself. A webpage
 
 | Status | Meaning | Recommended caller action |
 | --- | --- | --- |
-| `queued` | Waiting to be processed | Continue polling. |
-| `in_progress` | Generating | Continue polling. |
-| `succeeded` | Completed | Display `result.data[].url`. |
-| `failed` | Failed | Display the error and allow the user to retry. |
+| `NOT_START` / `SUBMITTED` / `QUEUED` | Waiting to be processed | Continue polling. |
+| `IN_PROGRESS` | Generating | Continue polling. |
+| `SUCCESS` | Completed | Display `data.data[].url`. |
+| `FAILURE` | Failed | Display `fail_reason` and allow the user to retry. |
 
-## Legacy route
-
-`GET /v1/images/tasks/{task_id}` remains available for legacy clients. New integrations should not mix the two response structures.
-
-Example response from the legacy route:
-
-```json
-{
-  "task_id": "img_xxx",
-  "status": "success",
-  "conversation_id": "conv_xxx",
-  "created": 1777080000,
-  "finished_at": 1777080060,
-  "error": "",
-  "credit_cost": 123,
-  "data": [
-    {
-      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
-      "file_id": "file_xxx"
-    }
-  ]
-}
-```
+Use only `GET /v1/tasks/{task_id}` for image task retrieval. Do not call the removed `/v1/images/tasks/{task_id}` route or treat an internal `img_xxx` image ID as the public task ID.

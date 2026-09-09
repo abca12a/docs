@@ -58,7 +58,7 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 ```json
 {
   "created": 1777080000,
-  "task_id": "img_xxx",
+  "task_id": "task_xxx",
   "data": []
 }
 ```
@@ -72,10 +72,10 @@ Synchronous mode returns after the image is ready:
 ```json
 {
   "created": 1777080000,
-  "task_id": "img_xxx",
+  "task_id": "task_xxx",
   "data": [
     {
-      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "url": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=...",
       "file_id": "file_xxx"
     }
   ]
@@ -84,11 +84,12 @@ Synchronous mode returns after the image is ready:
 
 ## Result fields
 
-`data[].url` is not always a public image URL. Support all three forms:
+`data[].url` is an image result URL. Handle it as follows:
 
-- `/p/img/...`: a relative path. Prefix it with `https://api-direct.dimilinks.com` before displaying or downloading it. The path requires no Bearer token because the URL includes a signature and expiration time.
-- `https://...`: a complete image URL that can be requested or displayed directly.
-- `data:image/...;base64,...`: a Data URL containing the image itself. A webpage can use it directly as `<img src>`; a server-side script must decode the base64 before saving it as a file.
+- `/p/img/...`: a relative path. Prefix it with `https://lmage2.dimilinks.com` before displaying or downloading it. The path requires no Bearer token because the URL includes a signature and expiration time.
+- `https://lmage2.dimilinks.com/p/img/...`: a complete image URL that can be requested or displayed directly.
+
+For asynchronous tasks, image results are in `data.data[]` on the task response, not `result.data[]`. The `img_xxx` in an image URL is an image-pool resource ID; it is different from the public task ID returned by submission.
 
 ## Parameters
 

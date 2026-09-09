@@ -5,12 +5,12 @@ openapi: "GET /tasks/{task_id}"
 icon: "bars-progress"
 ---
 
-提交异步图片任务后，用 `task_id` 查询任务状态。新接入请优先使用 `/v1/tasks/{task_id}`。
+提交异步图片任务后，用返回的公开 `task_id` 查询任务状态。公开任务 ID 使用 `task_` 前缀；图片池内部的 `img_` ID 不需要也不能用于查询。
 
 ## 请求
 
 ```bash
-curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
+curl "https://api-direct.dimilinks.com/v1/tasks/task_xxx" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY"
 ```
 
@@ -18,12 +18,17 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "in_progress",
-  "progress": 50,
-  "created_at": 1777080000
+  "task_id": "task_xxx",
+  "status": "IN_PROGRESS",
+  "progress": "50%",
+  "fail_reason": "",
+  "created_at": 1777080000,
+  "finished_at": 0,
+  "data": {
+    "task_id": "task_xxx",
+    "status": "in_progress",
+    "data": []
+  }
 }
 ```
 
@@ -31,18 +36,19 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "succeeded",
-  "progress": 100,
+  "task_id": "task_xxx",
+  "status": "SUCCESS",
+  "progress": "100%",
+  "fail_reason": "",
   "created_at": 1777080000,
-  "completed_at": 1777080060,
-  "result": {
+  "finished_at": 1777080060,
+  "data": {
     "created": 1777080000,
+    "task_id": "task_xxx",
+    "status": "success",
     "data": [
       {
-        "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+        "url": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=...",
         "file_id": "file_xxx"
       }
     ]
@@ -52,25 +58,20 @@ curl "https://api-direct.dimilinks.com/v1/tasks/img_xxx" \
 
 ## 图片地址格式
 
-任务成功后读取 `result.data[].url`。该字段可能是相对路径、完整 HTTP(S) 链接，或 `data:image/...;base64,...` Data URL。
+任务成功后读取 `data.data[].url`。`data` 是生成接口保存的结果对象，图片数组位于它的 `data` 字段。
 
-Data URL 不是错误，也不是日志内容；它就是图片本体。网页可直接展示，脚本保存为文件时需要先解码 base64。
+如果 URL 以 `/p/img/` 开头，展示或下载前补成 `https://lmage2.dimilinks.com`。完整的 `https://lmage2.dimilinks.com/p/img/...` 地址可以直接请求；URL 自带签名和过期时间，不需要 Bearer。
 
 ## 失败响应
 
 ```json
 {
-  "id": "img_xxx",
-  "task_id": "img_xxx",
-  "object": "image.task",
-  "status": "failed",
-  "progress": 100,
+  "task_id": "task_xxx",
+  "status": "FAILURE",
+  "progress": "100%",
+  "fail_reason": "上游返回错误",
   "created_at": 1777080000,
-  "completed_at": 1777080060,
-  "error": {
-    "code": "upstream_error",
-    "message": "上游返回错误"
-  }
+  "finished_at": 1777080060
 }
 ```
 
@@ -78,31 +79,9 @@ Data URL 不是错误，也不是日志内容；它就是图片本体。网页�
 
 | 状态 | 含义 | 调用方建议 |
 | --- | --- | --- |
-| `queued` | 等待处理 | 继续轮询。 |
-| `in_progress` | 生成中 | 继续轮询。 |
-| `succeeded` | 已完成 | 展示 `result.data[].url`。 |
-| `failed` | 已失败 | 展示错误信息，并允许用户重试。 |
+| `NOT_START` / `SUBMITTED` / `QUEUED` | 等待处理 | 继续轮询。 |
+| `IN_PROGRESS` | 生成中 | 继续轮询。 |
+| `SUCCESS` | 已完成 | 展示 `data.data[].url`。 |
+| `FAILURE` | 已失败 | 展示 `fail_reason`，并允许用户重试。 |
 
-## 历史路径
-
-`GET /v1/images/tasks/{task_id}` 保留给旧客户端。新接入不要混用两个查询结构。
-
-历史路径响应示例：
-
-```json
-{
-  "task_id": "img_xxx",
-  "status": "success",
-  "conversation_id": "conv_xxx",
-  "created": 1777080000,
-  "finished_at": 1777080060,
-  "error": "",
-  "credit_cost": 123,
-  "data": [
-    {
-      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
-      "file_id": "file_xxx"
-    }
-  ]
-}
-```
+图片任务查询只使用 `GET /v1/tasks/{task_id}`。不要调用已移除的 `/v1/images/tasks/{task_id}`，也不要把图片池返回的 `img_xxx` 当成公开任务 ID。

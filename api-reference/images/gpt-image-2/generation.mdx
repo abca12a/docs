@@ -58,7 +58,7 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 ```json
 {
   "created": 1777080000,
-  "task_id": "img_xxx",
+  "task_id": "task_xxx",
   "data": []
 }
 ```
@@ -72,10 +72,10 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 ```json
 {
   "created": 1777080000,
-  "task_id": "img_xxx",
+  "task_id": "task_xxx",
   "data": [
     {
-      "url": "/p/img/img_xxx/0?exp=1777166400000&sig=...",
+      "url": "https://lmage2.dimilinks.com/p/img/img_xxx/0?exp=1777166400000&sig=...",
       "file_id": "file_xxx"
     }
   ]
@@ -84,11 +84,12 @@ curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
 
 ## 结果字段说明
 
-`data[].url` 不一定是公网图片链接，请同时兼容三种形式：
+`data[].url` 是图片结果地址，请按以下规则处理：
 
-- `/p/img/...`：相对路径，展示或下载前补成 `https://api-direct.dimilinks.com/p/img/...`。该路径不需要 Bearer，URL 自带签名和过期时间。
-- `https://...`：完整图片链接，可直接请求或展示。
-- `data:image/...;base64,...`：Data URL，字符串本身就是图片内容。网页可直接作为 `<img src>`；服务端脚本保存文件时需要先解码 base64。
+- `/p/img/...`：相对路径，展示或下载前补成 `https://lmage2.dimilinks.com`。该路径不需要 Bearer，URL 自带签名和过期时间。
+- `https://lmage2.dimilinks.com/p/img/...`：完整图片链接，可直接请求或展示。
+
+异步任务查询返回的图片结果位于任务响应的 `data.data[]`，不是 `result.data[]`。图片 URL 中的 `img_xxx` 是图片资源 ID，不是提交接口返回的公开任务 ID。
 
 ## 参数
 
