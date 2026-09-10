@@ -1,14 +1,14 @@
 ---
-title: "Create video generation (Seedance A-series)"
-description: "Generate videos with seedance2.0-A / seedance2.5-A. Per-second billing with first/last frame and reference support."
+title: "Create video generation (Seedance 2.0 / 2.5)"
+description: "Generate videos with seedance 2.0 / seedance 2.5. Per-second billing with first/last frame and reference support."
 openapi: "POST /videos"
 icon: "film"
 ---
 
-A-series models use the unified `POST /v1/videos` endpoint with per-second billing; the resolution tier determines the per-second price. Tasks are asynchronous: creation returns a `task_id`, then use [Retrieve video task](/en/api-reference/videos/tasks) to poll status and download the result.
+`seedance 2.0` and `seedance 2.5` belong to the `seedance/h3` group and use the unified `POST /v1/videos` endpoint with per-second billing; the resolution determines the per-second price. Tasks are asynchronous: creation returns a `task_id`, then use [Retrieve video task](/en/api-reference/videos/tasks) to poll status and download the result.
 
 <Note>
-  Video billing is per second: cost = per-second price × duration. Check `seconds`, `resolution`, and `aspect_ratio` against the limits below before submitting.
+  Public model names carry **no `-A` suffix**: pass either `seedance 2.0` or `seedance 2.5` as `model`. See [Video groups and billing rules](/en/api-reference/videos/groups) for the differences between the two video groups.
 </Note>
 
 ## Endpoint
@@ -26,7 +26,7 @@ curl "https://api-direct.dimilinks.com/v1/videos" \
   -H "Authorization: Bearer $DIMILINKS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "seedance2.5-A",
+    "model": "seedance 2.5",
     "prompt": "Cinematic city night scene, a person walking along a wet street, steady tracking shot",
     "seconds": 8,
     "resolution": "720p",
@@ -41,7 +41,7 @@ Success response:
   "id": "task_xxx",
   "task_id": "task_xxx",
   "object": "video",
-  "model": "seedance2.5-A",
+  "model": "seedance 2.5",
   "status": "queued",
   "progress": 0
 }
@@ -49,7 +49,7 @@ Success response:
 
 ## Model capabilities
 
-| Item | `seedance2.0-A` | `seedance2.5-A` |
+| Item | `seedance 2.0` | `seedance 2.5` |
 | --- | --- | --- |
 | Positioning | Standard quality | New generation |
 | Duration | 4-15 seconds | 4-30 seconds |
@@ -59,7 +59,7 @@ Success response:
 
 ## Pricing
 
-| Resolution | `seedance2.0-A` per second (¥) | `seedance2.5-A` per second (¥) |
+| Resolution | `seedance 2.0` per second (¥) | `seedance 2.5` per second (¥) |
 | --- | ---: | ---: |
 | 480p | 0.60 | 0.70 |
 | 720p | 1.00 | 1.30 |
@@ -71,11 +71,11 @@ Cost = per-second price × `seconds`. Prices may change; use `GET /api/pricing` 
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `model` | string | yes | `seedance2.0-A` or `seedance2.5-A`. |
+| `model` | string | yes | `seedance 2.0` or `seedance 2.5` (no `-A` suffix). |
 | `prompt` | string | yes | Video description; reference media with `@图N` / `@视频N` / `@音频N` placeholders, numbered from 1 by array position. |
-| `seconds` | integer | no | `seedance2.0-A`: 4-15s; `seedance2.5-A`: 4-30s; default 4. |
-| `resolution` | string | no | `seedance2.0-A`: `480p` / `720p` / `1080p`; `seedance2.5-A`: `480p` / `720p`; default `480p`. |
-| `aspect_ratio` | string | no | See the capability table; default `16:9`. `seedance2.5-A` does not support `Auto`. |
+| `seconds` | integer | no | `seedance 2.0`: 4-15s; `seedance 2.5`: 4-30s; default 4. |
+| `resolution` | string | no | `seedance 2.0`: `480p` / `720p` / `1080p`; `seedance 2.5`: `480p` / `720p`; default `480p`. |
+| `aspect_ratio` | string | no | See the capability table; default `16:9`. `seedance 2.5` does not support `Auto`. |
 | `references` | array | no | Reference media array, see below. |
 
 ## Reference media
@@ -94,12 +94,12 @@ Put media into the `references` array. Each `source` must be a public HTTPS URL 
 
 Limits:
 
-- `seedance2.0-A`: images ≤ 9, videos ≤ 3, audios ≤ 3, total ≤ 12; reference videos 1.8-15s each, total ≤ 15s; reference audio 2-15s.
-- `seedance2.5-A`: images ≤ 30, videos ≤ 10, audios ≤ 10, total ≤ 50; reference videos ≤ 30s each and in total; reference audio 2-30s.
+- `seedance 2.0`: images ≤ 9, videos ≤ 3, audios ≤ 3, total ≤ 12; reference videos 1.8-15s each, total ≤ 15s; reference audio 2-15s.
+- `seedance 2.5`: images ≤ 30, videos ≤ 10, audios ≤ 10, total ≤ 50; reference videos ≤ 30s each and in total; reference audio 2-30s.
 - Single file ≤ 100 MB; reference video pixels roughly 640×640 to 4K.
 - `role` can be `reference` / `first_frame` / `last_frame`: videos and audios only use `reference`; first/last frames must be images.
 
-## First/last frame mode (only `seedance2.0-A`)
+## First/last frame mode (only `seedance 2.0`)
 
 - First and last frames must be submitted in pairs, as images only, and cannot be mixed with ordinary references.
 - Frame mode supports only the `Auto` aspect ratio.
@@ -107,4 +107,4 @@ Limits:
 
 ## Next step
 
-Save the `task_id` from the creation response, then poll with [Retrieve video task](/en/api-reference/videos/tasks) until `completed` before downloading.
+Save the `task_id` from the creation response, then poll with [Retrieve video task](/en/api-reference/videos/tasks) until `completed` before downloading. For a lower-cost 720p option, use the [doubao seedance group](/en/api-reference/videos/groups).

@@ -5,10 +5,10 @@ openapi: "POST /videos"
 icon: "film"
 ---
 
-`minimax-h3` 是 DimiLinks 的多模态视频生成模型，按秒计费，分辨率决定每秒单价。任务异步生成：创建后返回 `task_id`，用 [任务查询与下载](/api-reference/videos/tasks) 轮询状态并下载成片。
+`minimax-h3` 是 DimiLinks 的多模态视频生成模型，属于 `seedance/h3` 分组，按秒计费，分辨率决定每秒单价。任务异步生成：创建后返回 `task_id`，用 [任务查询与下载](/api-reference/videos/tasks) 轮询状态并下载成片。
 
 <Note>
-  视频按秒计费，费用 = 每秒单价 × 时长。提交前请确认 `seconds` 和 `resolution` 符合下表限制。
+  视频按秒计费，费用 = 每秒单价 × 时长。提交前请确认 `seconds` 和 `resolution` 符合下表限制；两个视频分组的差异见 [视频分组与计费规则](/api-reference/videos/groups)。
 </Note>
 
 ## 请求地址

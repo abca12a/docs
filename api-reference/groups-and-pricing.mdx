@@ -157,15 +157,23 @@ total_cost = model_price × group_ratio × n
 
 - 2K 档 `model_price = 0.15`，`group_ratio` 取 `gpt-image-2 = 1` 或 `default = 1`，单次费用 `0.15`。1K / 4K 档分别读取 `resolution_options`，不要套用 2K 价格。
 
-## 视频按秒计费（tiered_expr）
+## 视频计费：两个分组，两种规则
 
-`minimax-h3`、`seedance2.0-A`、`seedance2.5-A` 走按秒计费：费用 = 每秒单价 × 秒数，分辨率决定每秒单价。模型在 `/api/pricing` 的返回里带 `billing_mode: "tiered_expr"` 与 `billing_expr`，表达式声明了各分辨率档位的每秒单价：
+视频能力分成两个分组，计费方式不同。调用前请确认模型属于哪个分组，分组差异见 [视频分组与计费规则](/api-reference/videos/groups)。
+
+### `seedance/h3` 分组：按秒计费（tiered_expr）
+
+`minimax-h3`、`seedance 2.0`、`seedance 2.5` 走按秒计费：费用 = 每秒单价 × 秒数，分辨率决定每秒单价（分组倍率 `seedance/h3 = 1`）。模型在 `/api/pricing` 的返回里带 `billing_mode: "tiered_expr"` 与 `billing_expr`，表达式声明了各分辨率档位的每秒单价：
 
 | 模型 | 480p | 720p | 1080p |
 | --- | ---: | ---: | ---: |
 | `minimax-h3` | ¥0.16/秒 | ¥0.24/秒 | ¥0.70/秒 |
-| `seedance2.0-A` | ¥0.60/秒 | ¥1.00/秒 | ¥1.80/秒 |
-| `seedance2.5-A` | ¥0.70/秒 | ¥1.30/秒 | 不支持 |
+| `seedance 2.0` | ¥0.60/秒 | ¥1.00/秒 | ¥1.80/秒 |
+| `seedance 2.5` | ¥0.70/秒 | ¥1.30/秒 | 不支持 |
+
+### `doubao seedance` 分组：按 token 计费
+
+`doubao-seedance-2-0-260128`、`doubao-seedance-2-0-fast-260128`、`doubao-seedance-2-0-mini-260615`、`doubao-seedance-2-5-260628` 走按 token 计费（`quota_type = 0`），**只支持 720p**；分组倍率 `doubao seedance = 0.7`，即在官方基准价基础上打 7 折。token 消耗与「时长 × 分辨率」相关，费用按通用 token 公式结算。
 
 ## 图片按分辨率档位计费
 

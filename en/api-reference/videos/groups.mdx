@@ -1,0 +1,53 @@
+---
+title: "Video groups and billing rules"
+description: "DimiLinks has two video groups with different public model names, resolution limits, and billing models."
+icon: "layer-group"
+---
+
+DimiLinks splits video capability into two groups. Their model names, resolution limits, and billing models all differ, so confirm which group a model belongs to before calling it, or you will hit a missing-model or rejected-resolution error.
+
+| Group | Public model names | Resolution | Billing | Group ratio |
+| --- | --- | --- | --- | --- |
+| `seedance/h3` | `minimax-h3`, `seedance 2.0`, `seedance 2.5` | 480p / 720p / 1080p (per model) | Per second; resolution sets the per-second price | 1 |
+| `doubao seedance` | `doubao-seedance-2-0-260128`, `doubao-seedance-2-0-fast-260128`, `doubao-seedance-2-0-mini-260615`, `doubao-seedance-2-5-260628` | 720p only | Per token | 0.7 |
+
+Both groups use the same creation endpoint, and the same task retrieval and download endpoints:
+
+```http
+POST https://api-direct.dimilinks.com/v1/videos
+```
+
+## The `seedance/h3` group
+
+Public model names carry **no `-A` suffix**: pass `seedance 2.0`, `seedance 2.5`, or `minimax-h3` directly as `model`.
+
+- **Per-second billing**: cost = per-second price × `seconds`, with the resolution determining the per-second price. Tier rates are listed in [Seedance 2.0 / 2.5](/en/api-reference/videos/seedance/generation) and [MiniMax-H3](/en/api-reference/videos/minimax-h3/generation).
+- Supports 1080p (except `seedance 2.5`), first/last frames (`seedance 2.0` only), and image / video / audio references.
+- Put media into the `references` array; each `source` must be a public HTTPS URL the server can fetch directly.
+
+## The `doubao seedance` group
+
+- **720p only**; other resolutions are rejected.
+- **Per-token billing** with a group ratio of `0.7` (30% off the official baseline). Token usage depends on duration × resolution; use `GET /api/pricing` for live rates.
+- Model names include a `doubao-` prefix and a date suffix. Pass them exactly as listed, without trimming the suffix.
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/videos" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "doubao-seedance-2-5-260628",
+    "prompt": "A dancer spinning on a rooftop in the rain, slow-motion close-up",
+    "seconds": 5,
+    "resolution": "720p"
+  }'
+```
+
+## How to choose
+
+- Need 1080p, first/last frames, video or audio references, or per-second cost estimation: use the `seedance/h3` group.
+- Only need 720p at a lower unit price: use the `doubao seedance` group.
+
+## Next step
+
+Save the `task_id` from the creation response, then poll with [Retrieve video task](/en/api-reference/videos/tasks) until `completed` before downloading. Prices and groups change over time; treat `GET /api/pricing` as the runtime source of truth.

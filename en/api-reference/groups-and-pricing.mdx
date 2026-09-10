@@ -157,15 +157,23 @@ total_cost = model_price × group_ratio × n
 
 - The 2K tier has `model_price = 0.15`; `group_ratio` is either `gpt-image-2 = 1` or `default = 1`, so the request costs `0.15`. Read the separate `resolution_options` values for the 1K and 4K tiers instead of applying the 2K price.
 
-## Per-second video billing (tiered_expr)
+## Video billing: two groups, two rules
 
-`minimax-h3`, `seedance2.0-A`, and `seedance2.5-A` use per-second billing: cost = per-second price × seconds, with the resolution determining the per-second price. In `/api/pricing`, these models carry `billing_mode: "tiered_expr"` and a `billing_expr` that declares the per-second price of each resolution tier:
+Video capability is split into two groups with different billing. Confirm which group a model belongs to before calling it; see [Video groups and billing rules](/en/api-reference/videos/groups).
+
+### The `seedance/h3` group: per-second billing (tiered_expr)
+
+`minimax-h3`, `seedance 2.0`, and `seedance 2.5` use per-second billing: cost = per-second price × seconds, with the resolution determining the per-second price (`seedance/h3` group ratio = 1). In `/api/pricing`, these models carry `billing_mode: "tiered_expr"` and a `billing_expr` that declares the per-second price of each resolution tier:
 
 | Model | 480p | 720p | 1080p |
 | --- | ---: | ---: | ---: |
 | `minimax-h3` | ¥0.16/s | ¥0.24/s | ¥0.70/s |
-| `seedance2.0-A` | ¥0.60/s | ¥1.00/s | ¥1.80/s |
-| `seedance2.5-A` | ¥0.70/s | ¥1.30/s | unsupported |
+| `seedance 2.0` | ¥0.60/s | ¥1.00/s | ¥1.80/s |
+| `seedance 2.5` | ¥0.70/s | ¥1.30/s | unsupported |
+
+### The `doubao seedance` group: per-token billing
+
+`doubao-seedance-2-0-260128`, `doubao-seedance-2-0-fast-260128`, `doubao-seedance-2-0-mini-260615`, and `doubao-seedance-2-5-260628` use per-token billing (`quota_type = 0`) and support **720p only**. The `doubao seedance` group ratio is `0.7`, i.e. 30% off the official baseline. Token usage depends on duration × resolution and follows the standard token formula.
 
 ## Per-resolution image billing
 

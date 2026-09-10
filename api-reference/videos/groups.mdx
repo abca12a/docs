@@ -1,0 +1,53 @@
+---
+title: "视频分组与计费规则"
+description: "DimiLinks 有两个视频分组，对外模型名、分辨率限制和计费方式都不一样。"
+icon: "layer-group"
+---
+
+DimiLinks 的视频能力分成两个分组，模型名、分辨率限制和计费方式都不同。调用前先确认要用的模型属于哪个分组，否则会出现「模型不存在」或分辨率被拒。
+
+| 分组 | 对外模型名 | 分辨率 | 计费方式 | 分组倍率 |
+| --- | --- | --- | --- | --- |
+| `seedance/h3` | `minimax-h3`、`seedance 2.0`、`seedance 2.5` | 480p / 720p / 1080p（按模型不同） | 按秒计费，分辨率决定每秒单价 | 1 |
+| `doubao seedance` | `doubao-seedance-2-0-260128`、`doubao-seedance-2-0-fast-260128`、`doubao-seedance-2-0-mini-260615`、`doubao-seedance-2-5-260628` | 仅 720p | 按 token 计费 | 0.7 |
+
+两个分组都用同一个创建接口，任务查询与下载也共用：
+
+```http
+POST https://api-direct.dimilinks.com/v1/videos
+```
+
+## seedance/h3 分组
+
+对外模型名**不带 `-A` 后缀**：调用时 `model` 直接写 `seedance 2.0`、`seedance 2.5` 或 `minimax-h3`。
+
+- **按秒计费**：费用 = 每秒单价 × `seconds`，分辨率决定每秒单价。各档单价见 [Seedance 2.0 / 2.5](/api-reference/videos/seedance/generation) 与 [MiniMax-H3](/api-reference/videos/minimax-h3/generation)。
+- 支持 1080p（`seedance 2.5` 除外）、首尾帧（仅 `seedance 2.0`）以及图片 / 视频 / 音频参考素材。
+- 素材统一放入 `references` 数组，`source` 必须是服务端可直接访问的公网 HTTPS URL。
+
+## doubao seedance 分组
+
+- **只支持 720p**，提交其它分辨率会被拒绝。
+- **按 token 计费**，分组倍率为 `0.7`（相对官方基准价 7 折）；token 消耗与「时长 × 分辨率」相关，具体单价以 `GET /api/pricing` 为准。
+- 模型名带 `doubao-` 前缀与日期后缀，调用时原样填写，不要自行去掉后缀。
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/videos" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "doubao-seedance-2-5-260628",
+    "prompt": "一位舞者在雨中的天台旋转，慢动作特写",
+    "seconds": 5,
+    "resolution": "720p"
+  }'
+```
+
+## 怎么选
+
+- 需要 1080p、首尾帧、参考视频 / 参考音频，或按秒预估费用：选 `seedance/h3` 分组。
+- 只要 720p 且希望单价更低：选 `doubao seedance` 分组。
+
+## 下一步
+
+创建成功后保存响应中的 `task_id`，按 [任务查询与下载](/api-reference/videos/tasks) 轮询至 `completed` 后下载视频。价格与分组随时可能调整，运行时以 `GET /api/pricing` 为准。

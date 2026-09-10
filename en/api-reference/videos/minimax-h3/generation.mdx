@@ -5,10 +5,10 @@ openapi: "POST /videos"
 icon: "film"
 ---
 
-`minimax-h3` is DimiLinks' multimodal video generation model. Billing is per second, and the resolution tier determines the per-second price. Tasks are asynchronous: creation returns a `task_id`, then use [Retrieve video task](/en/api-reference/videos/tasks) to poll status and download the result.
+`minimax-h3` is DimiLinks' multimodal video generation model in the `seedance/h3` group. Billing is per second, and the resolution tier determines the per-second price. Tasks are asynchronous: creation returns a `task_id`, then use [Retrieve video task](/en/api-reference/videos/tasks) to poll status and download the result.
 
 <Note>
-  Video billing is per second: cost = per-second price × duration. Check `seconds` and `resolution` against the limits below before submitting.
+  Video billing is per second: cost = per-second price × duration. Check `seconds` and `resolution` against the limits below before submitting, and see [Video groups and billing rules](/en/api-reference/videos/groups) for how the two video groups differ.
 </Note>
 
 ## Endpoint
