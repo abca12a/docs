@@ -1,0 +1,46 @@
+---
+title: "Create image generation (GPT Image 2.5)"
+description: "用 gpt-image-2.5-flare / gpt-image-2.5-sunburst 生成图片，按 token 倍率计费。"
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+`gpt-image-2.5-flare` 与 `gpt-image-2.5-sunburst` 是 DimiLinks 的新一代图片生成模型，按 token 倍率计费。推荐使用异步模式（`?async=true`），创建后返回 `task_id`，用 [任务查询](/api-reference/images/gpt-image-2/tasks) 轮询并获取成图。
+
+## 请求地址
+
+```http
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## 文生图示例
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2.5-flare",
+    "prompt": "一张极简风格的品牌海报，几何构图，柔和渐变",
+    "size": "1:1"
+  }'
+```
+
+## 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | `gpt-image-2.5-flare` 或 `gpt-image-2.5-sunburst`。 |
+| `prompt` | string | 是 | 图片内容描述。 |
+| `size` | string | 否 | 画幅比例或具体像素，如 `1:1`、`16:9`、`1024x1024`。 |
+| `image_urls` | string[] | 否 | 参考图公网 URL 数组，图生图使用。 |
+
+## 计费
+
+两个模型按 token 倍率计费（输入 37.5 倍、输出 2 倍），实际费用与图片尺寸相关，具体单价以 `GET /api/pricing` 的实时返回为准。
+
+## 下一步
+
+异步模式下保存响应中的 `task_id`，按 [任务查询](/api-reference/images/gpt-image-2/tasks) 轮询至完成并获取图片；同步模式直接返回图片数据。常见错误见 [Errors](/api-reference/errors)。

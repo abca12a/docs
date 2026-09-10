@@ -1,0 +1,46 @@
+---
+title: "Create image generation (GPT Image 2.5)"
+description: "Generate images with gpt-image-2.5-flare / gpt-image-2.5-sunburst, billed by token ratio."
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+`gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` are DimiLinks' next-generation image models, billed by token ratio. Use async mode (`?async=true`): creation returns a `task_id`, then poll with [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks) to fetch the result.
+
+## Endpoint
+
+```http
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## Text-to-image example
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-2.5-flare",
+    "prompt": "A minimalist brand poster, geometric composition, soft gradients",
+    "size": "1:1"
+  }'
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `model` | string | yes | `gpt-image-2.5-flare` or `gpt-image-2.5-sunburst`. |
+| `prompt` | string | yes | Image description. |
+| `size` | string | no | Aspect ratio or exact pixels, e.g. `1:1`, `16:9`, `1024x1024`. |
+| `image_urls` | string[] | no | Public reference image URLs for image-to-image. |
+
+## Billing
+
+Both models are billed by token ratio (input 37.5×, output 2×); the actual cost depends on the image size. Use `GET /api/pricing` for the live rates.
+
+## Next step
+
+In async mode, save the `task_id` from the response and poll [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks) until completion; sync mode returns image data directly. See [Errors](/en/api-reference/errors) for common error codes.

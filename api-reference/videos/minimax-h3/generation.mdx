@@ -1,0 +1,103 @@
+---
+title: "Create video generation (MiniMax-H3)"
+description: "用 minimax-h3 生成 4 到 15 秒视频，支持图片、视频、音频参考素材。"
+openapi: "POST /videos"
+icon: "film"
+---
+
+`minimax-h3` 是 DimiLinks 的多模态视频生成模型，按秒计费，分辨率决定每秒单价。任务异步生成：创建后返回 `task_id`，用 [任务查询与下载](/api-reference/videos/tasks) 轮询状态并下载成片。
+
+<Note>
+  视频按秒计费，费用 = 每秒单价 × 时长。提交前请确认 `seconds` 和 `resolution` 符合下表限制。
+</Note>
+
+## 请求地址
+
+```http
+POST https://api-direct.dimilinks.com/v1/videos
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## 文生视频示例
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/videos" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "minimax-h3",
+    "prompt": "雨夜的未来城市，一辆黑色跑车穿过霓虹街道，低机位跟拍，电影级光影",
+    "seconds": 6,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": true
+  }'
+```
+
+成功响应：
+
+```json
+{
+  "id": "task_xxx",
+  "task_id": "task_xxx",
+  "object": "video",
+  "model": "minimax-h3",
+  "status": "queued",
+  "progress": 0
+}
+```
+
+## 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | 固定为 `minimax-h3`。 |
+| `prompt` | string | 是 | 视频描述文本；使用参考素材时建议说明各素材的用途。 |
+| `seconds` | integer | 否 | 时长 4–15 秒，默认 4。 |
+| `resolution` | string | 否 | 清晰度：`480p` / `720p` / `1080p`，默认 `480p`，决定每秒单价。 |
+| `aspect_ratio` | string | 否 | 宽高比：`16:9` / `9:16`，默认 `16:9`。 |
+| `generate_audio` | boolean | 否 | 是否生成或保留音频。 |
+| `references` | array | 否 | 参考素材数组，见下节。 |
+
+## 价格
+
+| 分辨率 | 每秒单价（¥） |
+| --- | ---: |
+| 480p | 0.16 |
+| 720p | 0.24 |
+| 1080p | 0.70 |
+
+费用 = 每秒单价 × `seconds`。价格可能随线上配置调整，运行时以 `GET /api/pricing` 为准。
+
+## 参考素材
+
+素材统一放入 `references` 数组，`source` 必须是无需登录、无需 Cookie 即可访问的公网 HTTPS URL：
+
+```json
+{
+  "references": [
+    { "type": "image", "role": "reference", "source": "https://cdn.example.com/character.png" },
+    { "type": "video", "role": "reference", "source": "https://cdn.example.com/motion.mp4" },
+    { "type": "audio", "role": "reference", "source": "https://cdn.example.com/dialogue.mp3" }
+  ]
+}
+```
+
+限制：
+
+- 图片最多 9 张；视频最多 3 条，音频最多 3 条，且视频与音频参考合计最多 3 条；素材总数最多 12 个。
+- 每个 `source` 必须唯一。
+- `role` 只使用 `reference` 或省略；本模型不支持 `first_frame` / `last_frame` 首尾帧语义。
+- 支持格式：图片 `image/jpeg`、`image/png`、`image/webp`；视频 `video/mp4`、`video/quicktime`；音频 `audio/mpeg`、`audio/wav`、`audio/x-wav`。
+
+## 错误处理
+
+- `400`：参数或素材不合法，请按上表修正，不要原样重试。
+- `402`：余额或生成服务额度不足。
+- `429`：当前负载饱和，请延迟后退重试。
+- 常见错误码与重试建议见 [Errors](/api-reference/errors)。
+
+## 下一步
+
+创建成功后保存响应中的 `task_id`，用 [任务查询与下载](/api-reference/videos/tasks) 轮询至 `completed` 后下载视频。

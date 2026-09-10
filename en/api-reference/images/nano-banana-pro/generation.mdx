@@ -1,0 +1,54 @@
+---
+title: "Create image generation (Nano Banana Pro)"
+description: "Generate images with nano-banana-pro, with async tasks and per-resolution pricing."
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+`nano-banana-pro` is DimiLinks' image generation model, billed per resolution tier. Use async mode (`?async=true`): creation returns a `task_id`, then poll with [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks) to fetch the result.
+
+## Endpoint
+
+```http
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## Text-to-image example
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "nano-banana-pro",
+    "prompt": "A warm breakfast table close-up, natural light, shallow depth of field",
+    "resolution": "2k",
+    "size": "1:1"
+  }'
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `model` | string | yes | Always `nano-banana-pro`. |
+| `prompt` | string | yes | Image description. |
+| `resolution` | string | no | `1k` / `2k` / `4k`; determines the per-image price. |
+| `size` | string | no | Aspect ratio or exact pixels, e.g. `1:1`, `16:9`, `1024x1024`. |
+| `image_urls` | string[] | no | Public reference image URLs for image-to-image. |
+
+## Pricing
+
+| Resolution | Price per image (¥) |
+| --- | ---: |
+| 1k | 0.12 |
+| 2k | 0.18 |
+| 4k | 0.195 |
+
+Prices may change; use `GET /api/pricing` as the runtime source of truth.
+
+## Next step
+
+In async mode, save the `task_id` from the response and poll [Retrieve image task](/en/api-reference/images/gpt-image-2/tasks) until completion; sync mode returns image data directly. See [Errors](/en/api-reference/errors) for common error codes.

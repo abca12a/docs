@@ -1,0 +1,110 @@
+---
+title: "Create video generation (Seedance A-series)"
+description: "用 seedance2.0-A / seedance2.5-A 生成视频，按秒计费，支持首尾帧和参考素材。"
+openapi: "POST /videos"
+icon: "film"
+---
+
+A 系列模型通过统一的 `POST /v1/videos` 接口调用，按秒计费，分辨率决定每秒单价。任务异步生成：创建后返回 `task_id`，用 [任务查询与下载](/api-reference/videos/tasks) 轮询状态并下载成片。
+
+<Note>
+  视频按秒计费，费用 = 每秒单价 × 时长。提交前请确认 `seconds`、`resolution` 和 `aspect_ratio` 符合下表限制。
+</Note>
+
+## 请求地址
+
+```http
+POST https://api-direct.dimilinks.com/v1/videos
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## 文生视频示例
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/videos" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance2.5-A",
+    "prompt": "电影感城市夜景，人物沿湿润街道向前行走，镜头平稳跟拍",
+    "seconds": 8,
+    "resolution": "720p",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+成功响应：
+
+```json
+{
+  "id": "task_xxx",
+  "task_id": "task_xxx",
+  "object": "video",
+  "model": "seedance2.5-A",
+  "status": "queued",
+  "progress": 0
+}
+```
+
+## 模型能力
+
+| 项目 | `seedance2.0-A` | `seedance2.5-A` |
+| --- | --- | --- |
+| 定位 | 标准质量 | 新一代模型 |
+| 时长 | 4–15 秒 | 4–30 秒 |
+| 分辨率 | 480p / 720p / 1080p | 480p / 720p |
+| 宽高比 | 21:9 / 16:9 / 4:3 / 1:1 / 3:4 / 9:16 / Auto | 21:9 / 16:9 / 4:3 / 1:1 / 3:4 / 9:16 |
+| 默认值 | 4 秒、480p、16:9 | 4 秒、480p、16:9 |
+
+## 价格
+
+| 分辨率 | `seedance2.0-A` 每秒单价（¥） | `seedance2.5-A` 每秒单价（¥） |
+| --- | ---: | ---: |
+| 480p | 0.60 | 0.70 |
+| 720p | 1.00 | 1.30 |
+| 1080p | 1.80 | 不支持 |
+
+费用 = 每秒单价 × `seconds`。价格可能随线上配置调整，运行时以 `GET /api/pricing` 为准。
+
+## 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | `seedance2.0-A` 或 `seedance2.5-A`。 |
+| `prompt` | string | 是 | 视频描述；引用素材用 `@图N` / `@视频N` / `@音频N` 占位符，编号从 1 开始对应数组位置。 |
+| `seconds` | integer | 否 | `seedance2.0-A` 4–15 秒；`seedance2.5-A` 4–30 秒；默认 4。 |
+| `resolution` | string | 否 | `seedance2.0-A`：`480p` / `720p` / `1080p`；`seedance2.5-A`：`480p` / `720p`；默认 `480p`。 |
+| `aspect_ratio` | string | 否 | 见「模型能力」表；默认 `16:9`。`seedance2.5-A` 不支持 `Auto`。 |
+| `references` | array | 否 | 参考素材数组，见下节。 |
+
+## 参考素材
+
+素材统一放入 `references` 数组，`source` 必须是服务端可直接访问的公网 HTTPS URL：
+
+```json
+{
+  "references": [
+    { "type": "image", "role": "reference", "source": "https://cdn.example.com/character.png" },
+    { "type": "video", "role": "reference", "source": "https://cdn.example.com/motion.mp4" },
+    { "type": "audio", "role": "reference", "source": "https://cdn.example.com/dialogue.mp3" }
+  ]
+}
+```
+
+限制：
+
+- `seedance2.0-A`：图片 ≤9、视频 ≤3、音频 ≤3，总数 ≤12；参考视频单条 1.8–15 秒、总时长 ≤15 秒；参考音频 2–15 秒。
+- `seedance2.5-A`：图片 ≤30、视频 ≤10、音频 ≤10，总数 ≤50；参考视频单条与总时长 ≤30 秒；参考音频 2–30 秒。
+- 单文件 ≤100 MB；参考视频像素范围约 640×640 到 4K。
+- `role` 可选 `reference` / `first_frame` / `last_frame`：视频与音频只能用 `reference`；首尾帧只能使用图片。
+
+## 首尾帧模式（仅 `seedance2.0-A`）
+
+- 首尾帧必须成对提交、只能使用图片，且不能与普通参考素材混用。
+- 首尾帧模式仅支持 `Auto` 宽高比。
+- 在 `prompt` 中引用素材时，`@图N` / `@图片N` 两种写法等价；传入的每个素材都必须在 `prompt` 中被引用，未引用的素材会被拒绝。
+
+## 下一步
+
+创建成功后保存响应中的 `task_id`，用 [任务查询与下载](/api-reference/videos/tasks) 轮询至 `completed` 后下载视频。

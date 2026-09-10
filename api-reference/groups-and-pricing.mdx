@@ -157,6 +157,25 @@ total_cost = model_price × group_ratio × n
 
 - 2K 档 `model_price = 0.15`，`group_ratio` 取 `gpt-image-2 = 1` 或 `default = 1`，单次费用 `0.15`。1K / 4K 档分别读取 `resolution_options`，不要套用 2K 价格。
 
+## 视频按秒计费（tiered_expr）
+
+`minimax-h3`、`seedance2.0-A`、`seedance2.5-A` 走按秒计费：费用 = 每秒单价 × 秒数，分辨率决定每秒单价。模型在 `/api/pricing` 的返回里带 `billing_mode: "tiered_expr"` 与 `billing_expr`，表达式声明了各分辨率档位的每秒单价：
+
+| 模型 | 480p | 720p | 1080p |
+| --- | ---: | ---: | ---: |
+| `minimax-h3` | ¥0.16/秒 | ¥0.24/秒 | ¥0.70/秒 |
+| `seedance2.0-A` | ¥0.60/秒 | ¥1.00/秒 | ¥1.80/秒 |
+| `seedance2.5-A` | ¥0.70/秒 | ¥1.30/秒 | 不支持 |
+
+## 图片按分辨率档位计费
+
+| 模型 | 1k | 2k | 4k |
+| --- | ---: | ---: | ---: |
+| `gpt-image-2` | ¥0.08/张 | ¥0.15/张 | ¥0.30/张 |
+| `nano-banana-pro` | ¥0.12/张 | ¥0.18/张 | ¥0.195/张 |
+
+`gpt-image-2.5-flare` / `gpt-image-2.5-sunburst` 按 token 倍率计费（输入 37.5×、输出 2×），实际费用与图片尺寸相关。
+
 ## 工程化建议
 
 - 启动时拉一次 `GET /api/pricing`，按模型建立 `model_name → { enable_groups, model_ratio, completion_ratio, cache_ratio, quota_type, model_price }` 的索引；用 `pricing_version` 做缓存键。

@@ -1,0 +1,55 @@
+---
+title: "Retrieve video task"
+description: "查询统一视频任务状态并下载成片。"
+openapi: "GET /videos/{task_id}"
+icon: "clock"
+---
+
+视频任务是异步的。创建成功后每 10–15 秒轮询一次任务状态，只有 `completed` 之后才能下载成片。
+
+## 查询任务
+
+```http
+GET https://api-direct.dimilinks.com/v1/videos/{task_id}
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+查询响应：
+
+```json
+{
+  "id": "task_xxx",
+  "task_id": "task_xxx",
+  "object": "video",
+  "model": "minimax-h3",
+  "status": "in_progress",
+  "progress": 45
+}
+```
+
+## 任务状态
+
+| 状态 | 含义 | 客户端操作 |
+| --- | --- | --- |
+| `queued` | 已受理，等待处理 | 继续轮询 |
+| `in_progress` | 正在生成 | 继续轮询 |
+| `completed` | 生成完成 | 下载视频 |
+| `failed` | 生成失败 | 读取 `error`，停止轮询 |
+
+查询返回 HTTP 200 不等于任务成功，必须检查响应体中的 `status`。
+
+## 下载视频
+
+只有任务状态为 `completed` 时调用下载接口，由平台代理结果地址：
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/videos/${TASK_ID}/content" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  --output result.mp4
+```
+
+## 注意事项
+
+- `POST /v1/videos` 不是幂等接口。客户端超时后不要立即重复提交，避免创建多个任务并重复计费。
+- 失败时 `error` 可能是字符串或对象，优先展示 `error.message` 或 `message`。
+- 常见错误码与重试建议见 [Errors](/api-reference/errors)。

@@ -1,0 +1,55 @@
+---
+title: "Retrieve video task"
+description: "Poll the unified video task status and download the finished video."
+openapi: "GET /videos/{task_id}"
+icon: "clock"
+---
+
+Video tasks are asynchronous. Poll the task every 10-15 seconds after creation, and download only after the status becomes `completed`.
+
+## Retrieve task
+
+```http
+GET https://api-direct.dimilinks.com/v1/videos/{task_id}
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+Response:
+
+```json
+{
+  "id": "task_xxx",
+  "task_id": "task_xxx",
+  "object": "video",
+  "model": "minimax-h3",
+  "status": "in_progress",
+  "progress": 45
+}
+```
+
+## Task status
+
+| Status | Meaning | Client action |
+| --- | --- | --- |
+| `queued` | Accepted, waiting to process | Keep polling |
+| `in_progress` | Generating | Keep polling |
+| `completed` | Finished | Download the video |
+| `failed` | Failed | Read `error`, stop polling |
+
+HTTP 200 on the query does not mean success; always check the `status` field in the body.
+
+## Download video
+
+Only download after the task reaches `completed`. The platform proxies the result:
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/videos/${TASK_ID}/content" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  --output result.mp4
+```
+
+## Notes
+
+- `POST /v1/videos` is not idempotent. After a client timeout, do not resubmit immediately, or you may create duplicate tasks and get billed twice.
+- On failure, `error` may be a string or an object; prefer showing `error.message` or `message`.
+- See [Errors](/en/api-reference/errors) for common error codes and retry guidance.

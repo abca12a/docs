@@ -1,0 +1,54 @@
+---
+title: "Create image generation (Nano Banana Pro)"
+description: "用 nano-banana-pro 生成图片，支持异步任务与分辨率档位计费。"
+openapi: "POST /images/generations"
+icon: "image"
+---
+
+`nano-banana-pro` 是 DimiLinks 的图片生成模型，按分辨率档位计费。推荐使用异步模式（`?async=true`），创建后返回 `task_id`，用 [任务查询](/api-reference/images/gpt-image-2/tasks) 轮询并获取成图。
+
+## 请求地址
+
+```http
+POST https://api-direct.dimilinks.com/v1/images/generations?async=true
+Content-Type: application/json
+Authorization: Bearer <DIMILINKS_API_KEY>
+```
+
+## 文生图示例
+
+```bash
+curl "https://api-direct.dimilinks.com/v1/images/generations?async=true" \
+  -H "Authorization: Bearer $DIMILINKS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "nano-banana-pro",
+    "prompt": "一张温暖的早餐桌特写，自然光，浅景深",
+    "resolution": "2k",
+    "size": "1:1"
+  }'
+```
+
+## 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `model` | string | 是 | 固定为 `nano-banana-pro`。 |
+| `prompt` | string | 是 | 图片内容描述。 |
+| `resolution` | string | 否 | 清晰度档位：`1k` / `2k` / `4k`，决定单张价格。 |
+| `size` | string | 否 | 画幅比例或具体像素，如 `1:1`、`16:9`、`1024x1024`。 |
+| `image_urls` | string[] | 否 | 参考图公网 URL 数组，图生图使用。 |
+
+## 价格
+
+| 分辨率 | 单张价格（¥） |
+| --- | ---: |
+| 1k | 0.12 |
+| 2k | 0.18 |
+| 4k | 0.195 |
+
+价格可能随线上配置调整，运行时以 `GET /api/pricing` 为准。
+
+## 下一步
+
+异步模式下保存响应中的 `task_id`，按 [任务查询](/api-reference/images/gpt-image-2/tasks) 轮询至完成并获取图片；同步模式直接返回图片数据。常见错误见 [Errors](/api-reference/errors)。

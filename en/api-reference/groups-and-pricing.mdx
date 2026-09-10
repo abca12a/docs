@@ -157,6 +157,25 @@ total_cost = model_price × group_ratio × n
 
 - The 2K tier has `model_price = 0.15`; `group_ratio` is either `gpt-image-2 = 1` or `default = 1`, so the request costs `0.15`. Read the separate `resolution_options` values for the 1K and 4K tiers instead of applying the 2K price.
 
+## Per-second video billing (tiered_expr)
+
+`minimax-h3`, `seedance2.0-A`, and `seedance2.5-A` use per-second billing: cost = per-second price × seconds, with the resolution determining the per-second price. In `/api/pricing`, these models carry `billing_mode: "tiered_expr"` and a `billing_expr` that declares the per-second price of each resolution tier:
+
+| Model | 480p | 720p | 1080p |
+| --- | ---: | ---: | ---: |
+| `minimax-h3` | ¥0.16/s | ¥0.24/s | ¥0.70/s |
+| `seedance2.0-A` | ¥0.60/s | ¥1.00/s | ¥1.80/s |
+| `seedance2.5-A` | ¥0.70/s | ¥1.30/s | unsupported |
+
+## Per-resolution image billing
+
+| Model | 1k | 2k | 4k |
+| --- | ---: | ---: | ---: |
+| `gpt-image-2` | ¥0.08/image | ¥0.15/image | ¥0.30/image |
+| `nano-banana-pro` | ¥0.12/image | ¥0.18/image | ¥0.195/image |
+
+`gpt-image-2.5-flare` / `gpt-image-2.5-sunburst` are billed by token ratio (input 37.5×, output 2×); the actual cost depends on the image size.
+
 ## Engineering recommendations
 
 - Retrieve `GET /api/pricing` at startup and build a `model_name → { enable_groups, model_ratio, completion_ratio, cache_ratio, quota_type, model_price }` index. Use `pricing_version` as the cache key.
